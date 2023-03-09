@@ -1,0 +1,10 @@
+*.swp
+*.cmake
+CMakeFiles*/
+CMakeCache.txt
+Makefile
+*.cmake
+*.a
+*-backup*
+inkimera_editor
+.DS_Store

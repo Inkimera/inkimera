@@ -1,0 +1,20 @@
+[submodule "engine/external/raylib"]
+  shallow = true
+  path = engine/external/raylib
+  url = https://github.com/raysan5/raylib.git
+  branch = bf2ad9df5fdcaa385b2a7f66fd85632eeebbadaa
+[submodule "engine/external/flecs"]
+  shallow = true
+  path = engine/external/flecs
+  url = https://github.com/SanderMertens/flecs.git
+  branch = e9c5ddb31f057e48201df1ef79e1909cc79b9609
+[submodule "engine/external/lua"]
+  shallow = true
+  path = engine/external/lua_cmake/lua
+  url = https://github.com/lua/lua
+  branch = 5d708c3f9cae12820e415d4f89c9eacbe2ab964b
+[submodule "engine/external/raygui"]
+  shallow = true
+  path = engine/external/raygui
+  url = https://github.com/raysan5/raygui.git
+  branch = c02a5883e0fa0bf78dbd65e70c530080deac5056
