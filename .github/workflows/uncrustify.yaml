@@ -1,0 +1,53 @@
+name: 'uncrustify'
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  check-uncrustify:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        run: |
+          cd $HOME
+          sudo apt-get install -y --no-install-recommends curl cmake build-essential
+          curl -L -o uncrustify-0.76.0.tar.gz https://github.com/uncrustify/uncrustify/archive/refs/tags/uncrustify-0.76.0.tar.gz
+          tar -xzf uncrustify-0.76.0.tar.gz
+          cd uncrustify-uncrustify-0.76.0
+          mkdir build
+          cd build
+          cmake ..
+          make -j3
+      - name: Uncrustify
+        run: |
+          cd $GITHUB_WORKSPACE
+          $HOME/uncrustify-uncrustify-0.76.0/build/uncrustify \
+            -c uncrustify.cfg \
+            --no-backup \
+            --replace \
+            engine/src/engine.c \
+            engine/src/include/engine.h \
+            engine/src/engine/entities/gui_node.c \
+            engine/src/include/entities/gui_node.h \
+            engine/include/inkimera.h \
+            engine/include/components/gui.h \
+            engine/include/components/script.h \
+            editor/src/main.c \
+            editor/src/plugins/gui.c \
+            editor/include/plugins/gui.h \
+            editor/src/plugins/keyboard_state_machine.c \
+            editor/include/plugins/keyboard_state_machine.h
+          git --no-pager diff --exit-code

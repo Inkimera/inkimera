@@ -147,7 +147,9 @@ engine_init();
 
 /* engine_deinit */
 int
-engine_deinit(engine_t *eng);
+engine_deinit(
+  engine_t *eng
+);
 
 /*
  * INPUT
@@ -155,7 +157,9 @@ engine_deinit(engine_t *eng);
 
 /* engine_key_state_get */
 engine_key_state_t
-engine_key_state_get(engine_key_t key);
+engine_key_state_get(
+  engine_key_t key
+);
 
 /*
  * SIGNALS
@@ -167,15 +171,26 @@ engine_key_state_get(engine_key_t key);
 
 /* engine_ecs_parent */
 int
-engine_ecs_parent(engine_t *eng, node_id_t child, node_id_t parent);
+engine_ecs_parent(
+  engine_t *eng,
+  node_id_t child,
+  node_id_t parent
+);
 
 /* engine_ecs_unparent */
 int
-engine_ecs_unparent(engine_t *eng, node_id_t child, node_id_t parent);
+engine_ecs_unparent(
+  engine_t *eng,
+  node_id_t child,
+  node_id_t parent
+);
 
 /* engine_ecs_get_parent_of */
 node_id_t
-engine_ecs_get_parent_of(engine_t *eng, node_id_t node);
+engine_ecs_get_parent_of(
+  engine_t *eng,
+  node_id_t node
+);
 
 //* engine_ecs_get_children_of */
 int
@@ -188,11 +203,16 @@ engine_ecs_get_children_of(
 
 /* engine_gui_node_create */
 node_id_t
-engine_gui_node_create(engine_t *eng);
+engine_gui_node_create(
+  engine_t *eng
+);
 
 /* engine_gui_node_delete */
 void
-engine_gui_node_delete(engine_t *eng, node_id_t node);
+engine_gui_node_delete(
+  engine_t *eng,
+  node_id_t node
+);
 
 /* engine_gui_node_get_type */
 gui_node_type_t
@@ -289,21 +309,39 @@ engine_gui_node_set_layout(
  */
 
 /* load_handle_t */
-typedef int (*load_handle_t)(engine_t *eng, void *plug);
+typedef int (*load_handle_t)(
+  engine_t *eng,
+  void *plug
+);
 
 /* unload_handle_t */
-typedef int (*unload_handle_t)(engine_t *eng, void *plug);
+typedef int (*unload_handle_t)(
+  engine_t *eng,
+  void *plug
+);
 
 /* update_handle_t */
-typedef void (*update_handle_t)(engine_t *eng, void *plug);
+typedef void (*update_handle_t)(
+  engine_t *eng,
+  void *plug
+);
 
 /* engine_create_plugin */
 plugin_handle_t*
-engine_create_plugin(engine_t *eng, void *plug, load_handle_t load, unload_handle_t unload, update_handle_t update);
+engine_create_plugin(
+  engine_t *eng,
+  void *plug,
+  load_handle_t load,
+  unload_handle_t unload,
+  update_handle_t update
+);
 
 /* engine_register_plugin */
 int
-engine_register_plugin(engine_t *eng, plugin_handle_t *handle);
+engine_register_plugin(
+  engine_t *eng,
+  plugin_handle_t *handle
+);
 
 /*
  * ENGINE RUNTIME
@@ -311,5 +349,7 @@ engine_register_plugin(engine_t *eng, plugin_handle_t *handle);
 
 /* engine_run */
 void
-engine_run(engine_t *eng);
+engine_run(
+  engine_t *eng
+);
 #endif

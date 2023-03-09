@@ -5,6 +5,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
+#set(raylib_VERBOSE 1)
 
 add_subdirectory(lib/signal)
 add_subdirectory(external/flecs)
@@ -21,7 +22,6 @@ add_library(${PROJECT_NAME} ${srcFiles})
 target_link_libraries(${PROJECT_NAME} signal)
 target_link_libraries(${PROJECT_NAME} flecs)
 target_link_libraries(${PROJECT_NAME} lua::lib)
-#set(raylib_VERBOSE 1)
 target_link_libraries(${PROJECT_NAME} raylib)
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)

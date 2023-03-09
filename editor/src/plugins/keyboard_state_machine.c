@@ -6,12 +6,17 @@ DEFINE_HASHMAP(state_machine_key)
 DEFINE_HASHMAP(state_machine_state)
 
 void
-state_machine_init(state_machine_t *machine) {
+state_machine_init(
+  state_machine_t *machine
+) {
   hashmap_state_machine_state_init(&machine->states);
 }
 
 state_machine_state_t*
-state_machine_add_state(state_machine_t *machine, char *name) {
+state_machine_add_state(
+  state_machine_t *machine,
+  char *name
+) {
   state_machine_state_t state = { .name = name };
   hashmap_state_machine_state_insert(&machine->states, name, state);
   state_machine_state_t *state_ptr = hashmap_state_machine_state_lookup(&machine->states, name);
@@ -30,15 +35,10 @@ state_machine_add_event(
 ) {
   state_machine_event_t event = {};
   hashmap_state_machine_key_init(&event.keys);
-
   for (int i = 0; i < num_keys; i++) {
     char key_str[MAX_KEY_STR];
     sprintf(key_str, "%d", keys[i]);
-    hashmap_state_machine_key_insert(
-        &event.keys,
-        key_str,
-      (state_machine_key_t) { .key = keys[i], .action = actions[i] }
-    );
+    hashmap_state_machine_key_insert(&event.keys, key_str, (state_machine_key_t) { .key = keys[i], .action = actions[i] });
   }
   event.num_keys = num_keys;
   machine->events[machine->num_events] = event;
@@ -97,12 +97,17 @@ state_machine_process(
 }
 
 char*
-state_machine_get_state(state_machine_t *machine) {
+state_machine_get_state(
+  state_machine_t *machine
+) {
   return machine->current_state->name;
 }
 
 int
-state_machine_set_state(state_machine_t *machine, char *name) {
+state_machine_set_state(
+  state_machine_t *machine,
+  char *name
+) {
   state_machine_state_t *state = hashmap_state_machine_state_lookup(&machine->states, name);
   if (state) {
     machine->current_state = state;

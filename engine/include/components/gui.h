@@ -1,3 +1,5 @@
+#ifndef INKIMERA_GUI_H
+#define INKIMERA_GUI_H
 #include "flecs.h"
 
 /*
@@ -18,21 +20,6 @@ typedef enum {
   GUI_NODE_VI
 } gui_node_type_t;
 
-/* GuiNode */
-ECS_TAG_DECLARE(GuiNodeEmpty);
-ECS_TAG_DECLARE(GuiNodeWindow);
-ECS_TAG_DECLARE(GuiNodePane);
-ECS_TAG_DECLARE(GuiNodeVSplit);
-ECS_TAG_DECLARE(GuiNodeHSplit);
-ECS_TAG_DECLARE(GuiNodeRow);
-ECS_TAG_DECLARE(GuiNodeColumn);
-ECS_TAG_DECLARE(GuiNodeButton);
-ECS_TAG_DECLARE(GuiNodeTextBox);
-ECS_TAG_DECLARE(GuiNodeVI);
-
-/* GuiFocus */
-ECS_TAG_DECLARE(GuiFocus);
-
 /* gui_node_anchor_t */
 typedef enum {
   GUI_ANCHOR_ROOT,
@@ -40,7 +27,6 @@ typedef enum {
   GUI_ANCHOR_B,
   GUI_ANCHOR_UNKNOWN
 } gui_node_anchor_t;
-ECS_COMPONENT_DECLARE(gui_node_anchor_t);
 
 /* gui_dimension_type_t */
 typedef enum {
@@ -49,8 +35,7 @@ typedef enum {
 } gui_dimension_type_t;
 
 /* gui_label_t */
-typedef char *gui_label_t;
-ECS_COMPONENT_DECLARE(gui_label_t);
+typedef char*gui_label_t;
 
 /* gui_position_t */
 typedef struct {
@@ -66,7 +51,6 @@ typedef struct {
     } dynamic;
   };
 } gui_position_t;
-ECS_COMPONENT_DECLARE(gui_position_t);
 
 /* gui_size_t */
 typedef struct {
@@ -82,7 +66,6 @@ typedef struct {
     } dynamic;
   };
 } gui_size_t;
-ECS_COMPONENT_DECLARE(gui_size_t);
 
 /* gui_layout_t */
 typedef struct {
@@ -90,4 +73,4 @@ typedef struct {
   int xoff;
   int yoff;
 } gui_layout_t;
-ECS_COMPONENT_DECLARE(gui_layout_t);
+#endif
