@@ -28,21 +28,21 @@ DEFINE_HASHMAP(int_t)
 #define INKIMERA_STYLE_PROPS_COUNT  15
 
 static const GuiStyleProp inkimera_style_props[INKIMERA_STYLE_PROPS_COUNT] = {
-  { 0, 0, 0xab9bd3ff },      // DEFAULT_BORDER_COLOR_NORMAL
-  { 0, 1, 0x3e4350ff },      // DEFAULT_BASE_COLOR_NORMAL
-  { 0, 2, 0xdadaf4ff },      // DEFAULT_TEXT_COLOR_NORMAL
-  { 0, 3, 0xee84a0ff },      // DEFAULT_BORDER_COLOR_FOCUSED
-  { 0, 4, 0xf4b7c7ff },      // DEFAULT_BASE_COLOR_FOCUSED
-  { 0, 5, 0xb7657bff },      // DEFAULT_TEXT_COLOR_FOCUSED
-  { 0, 6, 0xd5c8dbff },      // DEFAULT_BORDER_COLOR_PRESSED
-  { 0, 7, 0x966ec0ff },      // DEFAULT_BASE_COLOR_PRESSED
-  { 0, 8, 0xd7ccf7ff },      // DEFAULT_TEXT_COLOR_PRESSED
-  { 0, 9, 0x8fa2bdff },      // DEFAULT_BORDER_COLOR_DISABLED
-  { 0, 10, 0x6b798dff },      // DEFAULT_BASE_COLOR_DISABLED
-  { 0, 11, 0x8292a9ff },      // DEFAULT_TEXT_COLOR_DISABLED
-  { 0, 16, 0x00000010 },      // DEFAULT_TEXT_SIZE
-  { 0, 18, 0x84adb7ff },      // DEFAULT_LINE_COLOR
-  { 0, 19, 0x5b5b81ff },      // DEFAULT_BACKGROUND_COLOR
+  { 0, 0, 0xab9bd3ff }, // DEFAULT_BORDER_COLOR_NORMAL
+  { 0, 1, 0x3e4350ff }, // DEFAULT_BASE_COLOR_NORMAL
+  { 0, 2, 0xdadaf4ff }, // DEFAULT_TEXT_COLOR_NORMAL
+  { 0, 3, 0xee84a0ff }, // DEFAULT_BORDER_COLOR_FOCUSED
+  { 0, 4, 0xf4b7c7ff }, // DEFAULT_BASE_COLOR_FOCUSED
+  { 0, 5, 0xb7657bff }, // DEFAULT_TEXT_COLOR_FOCUSED
+  { 0, 6, 0xd5c8dbff }, // DEFAULT_BORDER_COLOR_PRESSED
+  { 0, 7, 0x966ec0ff }, // DEFAULT_BASE_COLOR_PRESSED
+  { 0, 8, 0xd7ccf7ff }, // DEFAULT_TEXT_COLOR_PRESSED
+  { 0, 9, 0x8fa2bdff }, // DEFAULT_BORDER_COLOR_DISABLED
+  { 0, 10, 0x6b798dff }, // DEFAULT_BASE_COLOR_DISABLED
+  { 0, 11, 0x8292a9ff }, // DEFAULT_TEXT_COLOR_DISABLED
+  { 0, 16, 0x00000010 }, // DEFAULT_TEXT_SIZE
+  { 0, 18, 0x84adb7ff }, // DEFAULT_LINE_COLOR
+  { 0, 19, 0x5b5b81ff }, // DEFAULT_BACKGROUND_COLOR
 };
 
 /* engine_init */
@@ -56,21 +56,13 @@ engine_init() {
 
   engine_t *eng = malloc(sizeof(engine_t));
   int fontSize = 14;
-  eng->font = LoadFontEx(
-    "engine/resources/fonts/IBMPlexMono-Regular.ttf",
-    fontSize, NULL, 0);
+  eng->font = LoadFontEx("engine/resources/fonts/IBMPlexMono-Regular.ttf", fontSize, NULL, 0);
   eng->plugin_count = 0;
   eng->plugins =
     malloc(MAX_PLUGINS * sizeof(plugin_handle_t*));
   eng->ecs_ctx = ecs_init();
-
-  for (int i = 0; i < INKIMERA_STYLE_PROPS_COUNT; i++)
-  {
-    GuiSetStyle(
-      inkimera_style_props[i].controlId,
-      inkimera_style_props[i].propertyId,
-      inkimera_style_props[i].propertyValue
-    );
+  for (int i = 0; i < INKIMERA_STYLE_PROPS_COUNT; i++) {
+    GuiSetStyle(inkimera_style_props[i].controlId, inkimera_style_props[i].propertyId, inkimera_style_props[i].propertyValue);
   }
   GuiSetFont(eng->font);
   gui_system_init(eng);
@@ -82,10 +74,11 @@ engine_init() {
 
 /* engine_deinit */
 int
-engine_deinit(engine_t *eng) {
+engine_deinit(
+  engine_t *eng
+) {
   CloseWindow();
-  while (eng->plugin_count-- > 0)
-  {
+  while (eng->plugin_count-- > 0) {
     plugin_handle_t *handle =
       eng->plugins[eng->plugin_count];
     handle->unload(eng, handle->plugin);
@@ -104,7 +97,9 @@ engine_deinit(engine_t *eng) {
 
 /* engine_key_state_get */
 engine_key_state_t
-engine_key_state_get(engine_key_t key) {
+engine_key_state_get(
+  engine_key_t key
+) {
   int state = 0;
   if (IsKeyDown((int)key)) {
     state |= ENGINE_KEY_STATE_DOWN;
@@ -131,8 +126,11 @@ engine_key_state_get(engine_key_t key) {
 
 /* engine_ecs_parent */
 int
-engine_ecs_parent(engine_t *eng, node_id_t child,
-                  node_id_t parent) {
+engine_ecs_parent(
+  engine_t *eng,
+  node_id_t child,
+  node_id_t parent
+) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
   ecs_add_pair(ecs_ctx, child, EcsChildOf, parent);
   return 0;
@@ -140,8 +138,11 @@ engine_ecs_parent(engine_t *eng, node_id_t child,
 
 /* engine_ecs_child_of */
 int
-engine_ecs_unparent(engine_t *eng, node_id_t child,
-                    node_id_t parent) {
+engine_ecs_unparent(
+  engine_t *eng,
+  node_id_t child,
+  node_id_t parent
+) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
   ecs_remove_pair(ecs_ctx, child, EcsChildOf, parent);
   return 0;
@@ -149,7 +150,10 @@ engine_ecs_unparent(engine_t *eng, node_id_t child,
 
 /* engine_ecs_get_parent_of */
 node_id_t
-engine_ecs_get_parent_of(engine_t *eng, node_id_t node) {
+engine_ecs_get_parent_of(
+  engine_t *eng,
+  node_id_t node
+) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
   //char *path = ecs_get_fullpath(ecs_ctx, node);
   //printf("%s\n", path);
@@ -185,13 +189,18 @@ engine_ecs_get_children_of(
 
 /* engine_gui_node_create */
 node_id_t
-engine_gui_node_create(engine_t *eng) {
+engine_gui_node_create(
+  engine_t *eng
+) {
   return gui_node_init(eng);
 }
 
 /* engine_gui_node_delete */
 void
-engine_gui_node_delete(engine_t *eng, node_id_t node) {
+engine_gui_node_delete(
+  engine_t *eng,
+  node_id_t node
+) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
   ecs_delete(ecs_ctx, node);
 }
@@ -202,10 +211,7 @@ engine_gui_node_get_type(
   engine_t *eng,
   node_id_t node
 ) {
-  return gui_node_get_type(
-    eng,
-    node
-  );
+  return gui_node_get_type(eng, node);
 }
 
 /* engine_gui_node_set_type */
@@ -215,11 +221,7 @@ engine_gui_node_set_type(
   node_id_t node,
   gui_node_type_t type
 ) {
-  return gui_node_set_type(
-    eng,
-    node,
-    type
-  );
+  return gui_node_set_type(eng, node, type);
 }
 
 /* engine_gui_node_focus */
@@ -228,11 +230,7 @@ engine_gui_node_focus(
   engine_t *eng,
   node_id_t node
 ) {
-  ecs_add(
-    eng->ecs_ctx,
-    node,
-    GuiFocus
-  );
+  gui_node_focus(eng, node);
   return 0;
 }
 
@@ -242,11 +240,7 @@ engine_gui_node_unfocus(
   engine_t *eng,
   node_id_t node
 ) {
-  ecs_remove(
-    eng->ecs_ctx,
-    node,
-    GuiFocus
-  );
+  gui_node_unfocus(eng, node);
   return 0;
 }
 
@@ -256,13 +250,7 @@ engine_gui_node_get_anchor(
   engine_t *eng,
   node_id_t node
 ) {
-  const gui_node_anchor_t *anchor
-    = ecs_get(eng->ecs_ctx, node, gui_node_anchor_t);
-  if (anchor) {
-    return *anchor;
-  } else {
-    return GUI_ANCHOR_UNKNOWN;
-  }
+  return gui_node_get_anchor(eng, node);
 }
 
 /* engine_gui_node_set_anchor */
@@ -272,12 +260,7 @@ engine_gui_node_set_anchor(
   node_id_t node,
   gui_node_anchor_t anchor
 ) {
-  return ecs_set_ptr(
-    eng->ecs_ctx,
-    node,
-    gui_node_anchor_t,
-    &anchor
-  );
+  return gui_node_set_anchor(eng, node, anchor);
 }
 
 /* engine_gui_node_set_label */
@@ -306,8 +289,7 @@ engine_gui_node_get_size(
   engine_t *eng,
   node_id_t node
 ) {
-  ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  return ecs_get(ecs_ctx, node, gui_size_t);
+  return gui_node_get_size(eng, node);
 }
 
 /* engine_gui_node_set_size */
@@ -326,8 +308,7 @@ engine_gui_node_get_layout(
   engine_t *eng,
   node_id_t node
 ) {
-  ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  return ecs_get(ecs_ctx, node, gui_layout_t);
+  return gui_node_get_layout(eng, node);
 }
 
 /* engine_gui_node_set_layout */
@@ -380,15 +361,15 @@ engine_register_plugin(
 
 /* engine_run */
 void
-engine_run(engine_t *eng) {
-  while (!WindowShouldClose())
-  {
+engine_run(
+  engine_t *eng
+) {
+  while (!WindowShouldClose()) {
     int i = 0;
     while (i < eng->plugin_count) {
       plugin_handle_t *handle = eng->plugins[i++];
       handle->update(eng, handle->plugin);
     }
-
     // Render
     BeginDrawing();
     ClearBackground((Color) { 255, 0, 0, 0 });

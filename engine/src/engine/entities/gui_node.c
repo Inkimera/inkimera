@@ -11,13 +11,51 @@
 #include "engine.h"
 #include "entities/gui_node.h"
 
+/* script_state_t */
+ECS_COMPONENT_DECLARE(script_state_t);
+
+/* script_t */
+ECS_COMPONENT_DECLARE(script_t);
+
 /*
  * GUI CORE
  */
 
+/* GuiNode */
+ECS_TAG_DECLARE(GuiNodeEmpty);
+ECS_TAG_DECLARE(GuiNodeWindow);
+ECS_TAG_DECLARE(GuiNodePane);
+ECS_TAG_DECLARE(GuiNodeVSplit);
+ECS_TAG_DECLARE(GuiNodeHSplit);
+ECS_TAG_DECLARE(GuiNodeRow);
+ECS_TAG_DECLARE(GuiNodeColumn);
+ECS_TAG_DECLARE(GuiNodeButton);
+ECS_TAG_DECLARE(GuiNodeTextBox);
+ECS_TAG_DECLARE(GuiNodeVI);
+
+/* GuiFocus */
+ECS_TAG_DECLARE(GuiFocus);
+
+/* gui_node_anchor_t */
+ECS_COMPONENT_DECLARE(gui_node_anchor_t);
+
+/* gui_label_t */
+ECS_COMPONENT_DECLARE(gui_label_t);
+
+/* gui_position_t */
+ECS_COMPONENT_DECLARE(gui_position_t);
+
+/* gui_size_t */
+ECS_COMPONENT_DECLARE(gui_size_t);
+
+/* gui_layout_t */
+ECS_COMPONENT_DECLARE(gui_layout_t);
+
 /* gui_system_init */
 int
-gui_system_init(engine_t *eng) {
+gui_system_init(
+  engine_t *eng
+) {
   ECS_COMPONENT_DEFINE(eng->ecs_ctx, script_t);
   ECS_TAG_DEFINE(eng->ecs_ctx, GuiNodeEmpty);
   ECS_TAG_DEFINE(eng->ecs_ctx, GuiNodeWindow);
@@ -35,32 +73,28 @@ gui_system_init(engine_t *eng) {
   ECS_COMPONENT_DEFINE(eng->ecs_ctx, gui_position_t);
   ECS_COMPONENT_DEFINE(eng->ecs_ctx, gui_size_t);
   ECS_COMPONENT_DEFINE(eng->ecs_ctx, gui_layout_t);
-  ECS_SYSTEM(
-    eng->ecs_ctx,
-    gui_node_system,
-    EcsOnUpdate,
-    GuiNodeWindow,
-  );
+  ECS_SYSTEM(eng->ecs_ctx, gui_node_system, EcsOnUpdate, GuiNodeWindow);
   return 0;
 }
 
 /* gui_node_init */
 node_id_t
-gui_node_init(engine_t *eng) {
+gui_node_init(
+  engine_t *eng
+) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
   ecs_entity_t node = ecs_new_id(ecs_ctx);
-  printf("Init GuiNode %llu\n", node);
-  ecs_add(
-    ecs_ctx,
-    node,
-    GuiNodeEmpty
-  );
+  printf("Init GuiNode %lld\n", (long long)node);
+  ecs_add(ecs_ctx, node, GuiNodeEmpty);
   return node;
 }
 
 /* gui_node_clear */
 int
-gui_node_clear(engine_t *eng, node_id_t node) {
+gui_node_clear(
+  engine_t *eng,
+  node_id_t node
+) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
   ecs_remove(ecs_ctx, node, GuiNodeEmpty);
   ecs_remove(ecs_ctx, node, GuiNodeWindow);
@@ -75,9 +109,12 @@ gui_node_clear(engine_t *eng, node_id_t node) {
   return 0;
 }
 
-/* gui_node_make_type */
+/* gui_node_get_type */
 gui_node_type_t
-gui_node_get_type(engine_t *eng, node_id_t node) {
+gui_node_get_type(
+  engine_t *eng,
+  node_id_t node
+) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
   if (ecs_has_id(ecs_ctx, node, GuiNodeWindow)) {
     return GUI_NODE_WINDOW;
@@ -102,85 +139,105 @@ gui_node_get_type(engine_t *eng, node_id_t node) {
   }
 }
 
-/* gui_node_make_type */
+/* gui_node_set_type */
 int
-gui_node_set_type(engine_t *eng, node_id_t node, gui_node_type_t type) {
+gui_node_set_type(
+  engine_t *eng,
+  node_id_t node,
+  gui_node_type_t type
+) {
   gui_node_clear(eng, node);
   switch (type) {
   case GUI_NODE_WINDOW:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeWindow
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeWindow);
     break;
   case GUI_NODE_PANE:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodePane
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodePane);
     break;
   case GUI_NODE_VSPLIT:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeVSplit
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeVSplit);
     break;
   case GUI_NODE_HSPLIT:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeHSplit
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeHSplit);
     break;
   case GUI_NODE_ROW:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeRow
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeRow);
     break;
   case GUI_NODE_COLUMN:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeColumn
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeColumn);
     break;
   case GUI_NODE_BUTTON:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeButton
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeButton);
     break;
   case GUI_NODE_TEXTBOX:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeTextBox
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeTextBox);
     break;
   case GUI_NODE_VI:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeVI
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeVI);
     break;
   default:
-    ecs_add(
-          eng->ecs_ctx,
-          node,
-          GuiNodeEmpty
-    );
+    ecs_add(eng->ecs_ctx, node, GuiNodeEmpty);
     break;
   }
   return 0;
 }
 
+/* gui_focus */
+void
+gui_node_focus(
+  engine_t *eng,
+  node_id_t node
+) {
+  ecs_add(eng->ecs_ctx, node, GuiFocus);
+}
+
+/* gui_unfocus */
+void
+gui_node_unfocus(
+  engine_t *eng,
+  node_id_t node
+) {
+  ecs_remove(eng->ecs_ctx, node, GuiFocus);
+}
+
+/* gui_node_get_anchor */
+gui_node_anchor_t
+gui_node_get_anchor(
+  engine_t *eng,
+  node_id_t node
+) {
+  const gui_node_anchor_t *anchor
+    = ecs_get(eng->ecs_ctx, node, gui_node_anchor_t);
+  if (anchor) {
+    return *anchor;
+  } else {
+    return GUI_ANCHOR_UNKNOWN;
+  }
+}
+
+/* gui_node_set_anchor */
+int
+gui_node_set_anchor(
+  engine_t *eng,
+  node_id_t node,
+  gui_node_anchor_t anchor
+) {
+  return ecs_set_ptr(eng->ecs_ctx, node, gui_node_anchor_t, &anchor);
+}
+
+/* gui_node_get_label */
+const gui_label_t
+gui_node_get_label(
+  engine_t *eng,
+  node_id_t node
+) {
+  const gui_label_t *label = ecs_get(eng->ecs_ctx, node, gui_label_t);
+  if (!label) {
+    return (gui_label_t)"";
+  } else {
+    return *label;
+  }
+}
 
 /* gui_node_set_label */
 int
@@ -190,12 +247,7 @@ gui_node_set_label(
   gui_label_t label
 ) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  ecs_set_ptr(
-    ecs_ctx,
-    (ecs_entity_t)node,
-    gui_label_t,
-    &label
-  );
+  ecs_set_ptr(ecs_ctx, (ecs_entity_t)node, gui_label_t, &label);
   return 0;
 }
 
@@ -207,13 +259,18 @@ gui_node_set_position(
   gui_position_t position
 ) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  ecs_set_ptr(
-    ecs_ctx,
-    (ecs_entity_t)node,
-    gui_position_t,
-    &position
-  );
+  ecs_set_ptr(ecs_ctx, (ecs_entity_t)node, gui_position_t, &position);
   return 0;
+}
+
+/* gui_node_get_size */
+const gui_size_t*
+gui_node_get_size(
+  engine_t *eng,
+  node_id_t node
+) {
+  ecs_world_t *ecs_ctx = eng->ecs_ctx;
+  return ecs_get(ecs_ctx, node, gui_size_t);
 }
 
 /* gui_node_set_size */
@@ -224,13 +281,18 @@ gui_node_set_size(
   gui_size_t size
 ) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  ecs_set_ptr(
-    ecs_ctx,
-    (ecs_entity_t)node,
-    gui_size_t,
-    &size
-  );
+  ecs_set_ptr(ecs_ctx, (ecs_entity_t)node, gui_size_t, &size);
   return 0;
+}
+
+/* gui_node_get_layout */
+const gui_layout_t*
+gui_node_get_layout(
+  engine_t *eng,
+  node_id_t node
+) {
+  ecs_world_t *ecs_ctx = eng->ecs_ctx;
+  return ecs_get(ecs_ctx, node, gui_layout_t);
 }
 
 /* gui_node_set_layout */
@@ -241,12 +303,7 @@ gui_node_set_layout(
   gui_layout_t layout
 ) {
   ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  ecs_set_ptr(
-    ecs_ctx,
-    (ecs_entity_t)node,
-    gui_layout_t,
-    &layout
-  );
+  ecs_set_ptr(ecs_ctx, (ecs_entity_t)node, gui_layout_t, &layout);
   return 0;
 }
 
@@ -299,7 +356,6 @@ gui_build_render_graph(
   const gui_position_t *position = ecs_get(ecs_ctx, node, gui_position_t);
   const gui_size_t *size = ecs_get(ecs_ctx, node, gui_size_t);
   const gui_layout_t *layout = ecs_get(ecs_ctx, node, gui_layout_t);
-
   if (ecs_has_id(ecs_ctx, node, GuiNodeWindow)) {
     if (!label || !position || !size) {
       printf("Invalid GuiNodeWindow\n");
@@ -307,15 +363,8 @@ gui_build_render_graph(
     }
     int padding = 8;
     Rectangle rect, inner_rect;
-    rect_with_bounds(
-        &rect,
-        &inner_rect,
-        container,
-        position,
-        size,
-        padding
-    );
-    GuiPanel(rect,       NULL);
+    rect_with_bounds(&rect, &inner_rect, container, position, size, padding);
+    GuiPanel(rect, NULL);
     GuiPanel(inner_rect, NULL);
     ecs_iter_t it = ecs_children(ecs_ctx, node);
     while (ecs_children_next(&it)) {
@@ -352,7 +401,7 @@ gui_build_render_graph(
         break;
       }
     }
-    sprintf(text, "Pane %llu(%i,%i) %s", node, layout->xoff, layout->yoff, anchor_text);
+    sprintf(text, "Pane %lld(%i,%i) %s", (long long)node, layout->xoff, layout->yoff, anchor_text);
     int text_size = MeasureText(text, 14);
     DrawText(text, rect.x + (rect.width / 2) - (text_size / 2), rect.y + (rect.height / 2) - 8, 14, color);
     //rect.x += padding;
@@ -383,12 +432,7 @@ gui_build_render_graph(
     child_b_rect.width = (int)((float)container.width * (1.0 - size->dynamic.width));
     child_b_rect.x += child_a_rect.width;
 
-    DrawLineEx(
-      (Vector2) { child_b_rect.x, child_b_rect.y },
-      (Vector2) { child_b_rect.x, child_b_rect.y + child_b_rect.height },
-      2,
-      (Color) { 132, 173, 183, 255 }
-    );
+    DrawLineEx((Vector2) { child_b_rect.x, child_b_rect.y }, (Vector2) { child_b_rect.x, child_b_rect.y + child_b_rect.height }, 2, (Color) { 132, 173, 183, 255 });
 
     char text[64] = { 0 };
     char *anchor_text = "GUI_ANCHOR_UNKNOWN";
@@ -407,15 +451,9 @@ gui_build_render_graph(
         break;
       }
     }
-    sprintf(text, "VSplit %llu(%i,%i) %s", node, layout->xoff, layout->yoff, anchor_text);
+    sprintf(text, "VSplit %lld(%i,%i) %s", (long long)node, layout->xoff, layout->yoff, anchor_text);
     int text_size = MeasureText(text, 14);
-    DrawText(
-      text,
-      child_b_rect.x - (text_size / 2),
-      child_b_rect.y + (child_b_rect.height / 2) - 8,
-      14,
-      RED
-    );
+    DrawText(text, child_b_rect.x - (text_size / 2), child_b_rect.y + (child_b_rect.height / 2) - 8, 14, RED);
 
     int count = 0;
     ecs_entity_t children[2];
@@ -429,7 +467,6 @@ gui_build_render_graph(
         children[count++] = it.entities[i];
       }
     }
-
     const gui_node_anchor_t *child_anchor = ecs_get(ecs_ctx, children[0], gui_node_anchor_t);
     if (child_anchor && *child_anchor == GUI_ANCHOR_A) {
       ecs_entity_t child_a = children[0];
@@ -449,19 +486,13 @@ gui_build_render_graph(
       printf("Invalid GuiNodeHSplit\n");
       return;
     }
-
     Rectangle child_a_rect = container;
     child_a_rect.height = (int)((float)container.height * size->dynamic.height);
     Rectangle child_b_rect = container;
     child_b_rect.height = (int)((float)container.height * (1.0 - size->dynamic.height));
     child_b_rect.y += child_a_rect.height;
 
-    DrawLineEx(
-      (Vector2) { child_b_rect.x, child_b_rect.y },
-      (Vector2) { child_b_rect.x + child_b_rect.width, child_b_rect.y },
-      2,
-      (Color) { 132, 173, 183, 255 }
-    );
+    DrawLineEx((Vector2) { child_b_rect.x, child_b_rect.y }, (Vector2) { child_b_rect.x + child_b_rect.width, child_b_rect.y }, 2, (Color) { 132, 173, 183, 255 });
 
     char text[64] = { 0 };
     char *anchor_text = "GUI_ANCHOR_UNKNOWN";
@@ -480,15 +511,9 @@ gui_build_render_graph(
         break;
       }
     }
-    sprintf(text, "HSplit %llu(%i,%i) %s", node, layout->xoff, layout->yoff, anchor_text);
+    sprintf(text, "HSplit %lld(%i,%i) %s", (long long) node, layout->xoff, layout->yoff, anchor_text);
     int text_size = MeasureText(text, 14);
-    DrawText(
-      text,
-      child_b_rect.x + (child_b_rect.width / 2) - (text_size / 2),
-      child_b_rect.y - 8,
-      14,
-      RED
-    );
+    DrawText(text, child_b_rect.x + (child_b_rect.width / 2) - (text_size / 2), child_b_rect.y - 8, 14, RED);
 
     int count = 0;
     ecs_entity_t children[2];
@@ -537,7 +562,6 @@ gui_build_render_graph(
   } else if (ecs_has_id(ecs_ctx, node, GuiNodeTextBox)) {
     static char textBoxText[64];
     static int textBoxEditMode;
-
     if (GuiTextBox(container, textBoxText, 64, textBoxEditMode)) {
       textBoxEditMode = !textBoxEditMode;
     }
@@ -548,12 +572,10 @@ gui_build_render_graph(
 
 /* gui_node_system */
 void
-gui_node_system(ecs_iter_t *it) {
+gui_node_system(
+  ecs_iter_t *it
+) {
   for (int i = 0; i < it->count; i++) {
-    gui_build_render_graph(
-      it->world,
-      (Rectangle) { 0, 0, GetRenderWidth(), GetRenderHeight() },
-      it->entities[i]
-    );
+    gui_build_render_graph(it->world, (Rectangle) { 0, 0, GetRenderWidth(), GetRenderHeight() }, it->entities[i]);
   }
 }
