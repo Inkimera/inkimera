@@ -1,4 +1,7 @@
-#include "inkimera.h"
+#ifndef KEYBOARD_STATE_MACHINE_H
+#define KEYBOARD_STATE_MACHINE_H
+
+#include "stdio.h"
 #include "hashmap.h"
 
 #define MAX_EVENTS 32
@@ -88,3 +91,4 @@ state_machine_set_state(
   state_machine_t *machine,
   char *name
 );
+#endif

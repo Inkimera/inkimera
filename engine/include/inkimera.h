@@ -1,7 +1,13 @@
 #ifndef INKIMERA_H
 #define INKIMERA_H
-#include "components/script.h"
+#include "flecs.h"
+#include "raylib.h"
+#include "raymath.h"
+
+#include "components/pipeline.h"
+#include "components/3d.h"
 #include "components/gui.h"
+#include "components/script.h"
 
 /*
  * ENGINE CORE
@@ -12,9 +18,6 @@ typedef ecs_entity_t node_id_t;
 
 /* engine_t */
 typedef struct engine engine_t;
-
-/* plugin_handle_t */
-typedef struct plugin_handle plugin_handle_t;
 
 /* engine_key_t */
 typedef enum {
@@ -143,7 +146,9 @@ typedef enum {
 
 /* engine_init */
 engine_t*
-engine_init();
+engine_init(
+  void
+);
 
 /* engine_deinit */
 int
@@ -169,139 +174,18 @@ engine_key_state_get(
  * ENGINE ECS
  */
 
-/* engine_ecs_parent */
-int
-engine_ecs_parent(
-  engine_t *eng,
-  node_id_t child,
-  node_id_t parent
-);
-
-/* engine_ecs_unparent */
-int
-engine_ecs_unparent(
-  engine_t *eng,
-  node_id_t child,
-  node_id_t parent
-);
-
-/* engine_ecs_get_parent_of */
-node_id_t
-engine_ecs_get_parent_of(
-  engine_t *eng,
-  node_id_t node
+ecs_world_t*
+engine_ecs_context(
+  engine_t *eng
 );
 
 //* engine_ecs_get_children_of */
 int
 engine_ecs_get_children_of(
-  engine_t *eng,
+  ecs_world_t *ecs_ctx,
   node_id_t node,
   node_id_t *children,
   int max_children
-);
-
-/* engine_gui_node_create */
-node_id_t
-engine_gui_node_create(
-  engine_t *eng
-);
-
-/* engine_gui_node_delete */
-void
-engine_gui_node_delete(
-  engine_t *eng,
-  node_id_t node
-);
-
-/* engine_gui_node_get_type */
-gui_node_type_t
-engine_gui_node_get_type(
-  engine_t *eng,
-  node_id_t node
-);
-
-/* engine_gui_node_set_type */
-int
-engine_gui_node_set_type(
-  engine_t *eng,
-  node_id_t node,
-  gui_node_type_t type
-);
-
-/* engine_gui_node_focus */
-int
-engine_gui_node_focus(
-  engine_t *eng,
-  node_id_t node
-);
-
-/* engine_gui_node_unfocus */
-int
-engine_gui_node_unfocus(
-  engine_t *eng,
-  node_id_t node
-);
-
-/* engine_gui_node_get_anchor */
-gui_node_anchor_t
-engine_gui_node_get_anchor(
-  engine_t *eng,
-  node_id_t node
-);
-
-/* engine_gui_node_set_anchor */
-int
-engine_gui_node_set_anchor(
-  engine_t *eng,
-  node_id_t node,
-  gui_node_anchor_t anchor
-);
-
-/* engine_gui_node_set_label */
-int
-engine_gui_node_set_label(
-  engine_t *eng,
-  node_id_t node,
-  gui_label_t label
-);
-
-/* engine_gui_node_set_position */
-int
-engine_gui_node_set_position(
-  engine_t *eng,
-  node_id_t node,
-  gui_position_t position
-);
-
-/* engine_gui_node_get_size */
-const gui_size_t*
-engine_gui_node_get_size(
-  engine_t *eng,
-  node_id_t node
-);
-
-/* engine_gui_node_set_size */
-int
-engine_gui_node_set_size(
-  engine_t *eng,
-  node_id_t node,
-  gui_size_t size
-);
-
-/* engine_gui_node_get_layout */
-const gui_layout_t*
-engine_gui_node_get_layout(
-  engine_t *eng,
-  node_id_t node
-);
-
-/* engine_gui_node_set_layout */
-int
-engine_gui_node_set_layout(
-  engine_t *eng,
-  node_id_t node,
-  gui_layout_t layout
 );
 
 /*
@@ -320,28 +204,14 @@ typedef int (*unload_handle_t)(
   void *plug
 );
 
-/* update_handle_t */
-typedef void (*update_handle_t)(
-  engine_t *eng,
-  void *plug
-);
-
-/* engine_create_plugin */
-plugin_handle_t*
-engine_create_plugin(
-  engine_t *eng,
-  void *plug,
-  load_handle_t load,
-  unload_handle_t unload,
-  update_handle_t update
-);
-
-/* engine_register_plugin */
-int
-engine_register_plugin(
-  engine_t *eng,
-  plugin_handle_t *handle
-);
+/* plugin_t */
+typedef struct {
+  engine_t *eng;
+  void *plugin;
+  load_handle_t load;
+  unload_handle_t unload;
+} plugin_t;
+extern ECS_COMPONENT_DECLARE(plugin_t);
 
 /*
  * ENGINE RUNTIME

@@ -1,4 +1,4 @@
-#include "plugins/keyboard_state_machine.h"
+#include "keyboard_state_machine.h"
 
 #define MAX_KEY_STR 16
 
@@ -33,7 +33,7 @@ state_machine_add_event(
   int *actions,
   int num_keys
 ) {
-  state_machine_event_t event = {};
+  state_machine_event_t event = { 0 };
   hashmap_state_machine_key_init(&event.keys);
   for (int i = 0; i < num_keys; i++) {
     char key_str[MAX_KEY_STR];

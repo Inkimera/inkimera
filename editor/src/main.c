@@ -1,5 +1,8 @@
+#include "stdlib.h"
+
 #include "inkimera.h"
-#include "plugins/gui.h"
+#include "gui.h"
+#include "scene_editor.h"
 
 /*
  * MAIN
@@ -8,14 +11,14 @@ int
 main(
   void
 ) {
+  // INIT
   engine_t *eng = engine_init();
-
-  gui_plugin_t *gui_plugin = gui_plugin_init();
-  plugin_handle_t *gui_plugin_handle
-    = engine_create_plugin(eng, gui_plugin, &gui_plugin_load, &gui_plugin_unload, &gui_plugin_events);
-  engine_register_plugin(eng, gui_plugin_handle);
-
+  // Plugins
+  gui_plugin_init(eng);
+  scene_editor_plugin_init(eng);
+  // RUN
   engine_run(eng);
+  // DEINIT
   engine_deinit(eng);
   return 0;
 }
