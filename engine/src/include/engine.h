@@ -12,8 +12,8 @@
 /* engine_t */
 struct engine {
   Font font;
-  int plugin_count;
-  plugin_handle_t **plugins;
+  //int plugin_count;
+  //plugin_handle_t **plugins;
   ecs_world_t *ecs_ctx;
 };
 
@@ -22,10 +22,12 @@ struct engine {
  */
 
 /* plugin_handle_t */
-struct plugin_handle {
-  void *plugin;
-  load_handle_t load;
-  unload_handle_t unload;
-  update_handle_t update;
-};
+/*
+   struct plugin_handle {
+   void *plugin;
+   load_handle_t load;
+   unload_handle_t unload;
+   update_handle_t update;
+   };
+ */
 #endif

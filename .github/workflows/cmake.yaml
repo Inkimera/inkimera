@@ -18,7 +18,7 @@ jobs:
   check-cmake:
     strategy:
       matrix:
-        cc: [gcc, clang]
+        cc: ["gcc", "clang"] # "zig cc"
     runs-on: "ubuntu-latest"
     steps:
       - name: Checkout

@@ -1,8 +1,8 @@
 [submodule "engine/external/raylib"]
   shallow = true
   path = engine/external/raylib
-  url = https://github.com/raysan5/raylib.git
-  branch = bf2ad9df5fdcaa385b2a7f66fd85632eeebbadaa
+  url = https://github.com/inkimera/raylib.git
+  branch = f9c9cc718fa3ecdf5640f5bf5e20edde1f1b8f8e
 [submodule "engine/external/flecs"]
   shallow = true
   path = engine/external/flecs

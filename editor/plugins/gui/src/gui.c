@@ -3,16 +3,17 @@
 #include <time.h>
 
 #include "inkimera.h"
-#include "plugins/gui.h"
+#include "gui.h"
 
-const char *GUI_PLUGIN_KEY = "gui_plugin_key";
+/* GuiPlugin */
+ECS_TAG_DECLARE(GuiPlugin);
 
 /*
  * GUI_PLUGIN
  */
 
 /* gui_new_window */
-node_id_t
+static node_id_t
 gui_new_window(
   engine_t *eng,
   int x,
@@ -21,147 +22,209 @@ gui_new_window(
   float width,
   char *label
 ) {
-  node_id_t window = engine_gui_node_create(eng);
-  engine_gui_node_set_type(eng, window, GUI_NODE_WINDOW);
-  engine_gui_node_set_label(eng, window, (gui_label_t)label);
-  gui_position_t window_pos = {
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  gui_position_t position = {
     .type = GuiDimensionTypeDynamic,
-    .dynamic = { .x = x, .y = y }
+    .value = { .dynamic = { .x = x, .y = y } }
   };
-  engine_gui_node_set_position(eng, window, window_pos);
-  gui_size_t window_size = {
+  gui_size_t size = {
     .type = GuiDimensionTypeDynamic,
-    .dynamic = { .width = width, .height = height }
+    .value = { .dynamic = { .width = width, .height = height } }
   };
-  engine_gui_node_set_size(eng, window, window_size);
-  gui_layout_t window_layout = {};
-  engine_gui_node_set_layout(eng, window, window_layout);
+  gui_layout_t layout = { 0 };
+
+  ecs_entity_t window = ecs_new_id(ecs_ctx);
+  ecs_add(ecs_ctx, window, GuiNodeWindow);
+  ecs_set_ptr(ecs_ctx, window, gui_label_t, &label);
+  ecs_set_ptr(ecs_ctx, window, gui_position_t, &position);
+  ecs_set_ptr(ecs_ctx, window, gui_size_t, &size);
+  ecs_set_ptr(ecs_ctx, window, gui_layout_t, &layout);
   return window;
 }
 
 /* gui_new_pane */
-node_id_t
+static node_id_t
 gui_new_pane(
   engine_t *eng,
   char *label,
   node_id_t parent
 ) {
-  node_id_t pane = engine_gui_node_create(eng);
-  engine_gui_node_set_type(eng, pane, GUI_NODE_PANE);
-  engine_gui_node_set_label(eng, pane, (gui_label_t)label);
-  gui_layout_t pane_layout = {};
-  engine_gui_node_set_layout(eng, pane, pane_layout);
-  engine_ecs_parent(eng, pane, parent);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  gui_layout_t layout = { 0 };
+
+  ecs_entity_t pane = ecs_new_id(ecs_ctx);
+  ecs_add(ecs_ctx, pane, GuiNodePane);
+  ecs_set_ptr(ecs_ctx, pane, gui_label_t, &label);
+  ecs_set_ptr(ecs_ctx, pane, gui_layout_t, &layout);
+  ecs_add_pair(ecs_ctx, pane, EcsChildOf, parent);
   return pane;
 }
 
 /* gui_new_vsplit */
-node_id_t
+static node_id_t
 gui_new_vsplit(
   engine_t *eng,
   node_id_t parent
 ) {
-  node_id_t split = engine_gui_node_create(eng);
-  engine_gui_node_set_type(eng, split, GUI_NODE_VSPLIT);
-  gui_size_t split_size = {
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  gui_size_t size = {
     .type = GuiDimensionTypeDynamic,
-    .dynamic = { .width = 0.5 }
+    .value = { .dynamic = { .width = 0.5 } }
   };
-  engine_gui_node_set_size(eng, split, split_size);
-  gui_layout_t split_layout = {};
-  engine_gui_node_set_layout(eng, split, split_layout);
-  engine_ecs_parent(eng, split, parent);
+  gui_layout_t layout = { 0 };
+
+  ecs_entity_t split = ecs_new_id(ecs_ctx);
+  ecs_add(ecs_ctx, split, GuiNodeVSplit);
+  ecs_set_ptr(ecs_ctx, split, gui_size_t, &size);
+  ecs_set_ptr(ecs_ctx, split, gui_layout_t, &layout);
+  ecs_add_pair(ecs_ctx, split, EcsChildOf, parent);
   return split;
 }
 
 /* gui_new_hsplit */
-node_id_t
+static node_id_t
 gui_new_hsplit(
   engine_t *eng,
   node_id_t parent
 ) {
-  node_id_t split = engine_gui_node_create(eng);
-  engine_gui_node_set_type(eng, split, GUI_NODE_HSPLIT);
-  gui_size_t split_size = {
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  gui_size_t size = {
     .type = GuiDimensionTypeDynamic,
-    .dynamic = { .height = 0.5 }
+    .value = { .dynamic = { .height = 0.5 } }
   };
-  engine_gui_node_set_size(eng, split, split_size);
-  gui_layout_t split_layout = {};
-  engine_gui_node_set_layout(eng, split, split_layout);
-  engine_ecs_parent(eng, split, parent);
+  gui_layout_t layout = { 0 };
+
+  ecs_entity_t split = ecs_new_id(ecs_ctx);
+  ecs_add(ecs_ctx, split, GuiNodeHSplit);
+  ecs_set_ptr(ecs_ctx, split, gui_size_t, &size);
+  ecs_set_ptr(ecs_ctx, split, gui_layout_t, &layout);
+  ecs_add_pair(ecs_ctx, split, EcsChildOf, parent);
   return split;
 }
 
 /* gui_new_row */
-node_id_t
-gui_new_row(
-  engine_t *eng,
-  float height,
-  int columns,
-  node_id_t parent
-) {
-  node_id_t row = engine_gui_node_create(eng);
-  engine_gui_node_set_type(eng, row, GUI_NODE_ROW);
-  gui_size_t row_size = {
+/*
+   static node_id_t
+   gui_new_row(
+   engine_t *eng,
+   float height,
+   int columns,
+   node_id_t parent
+   ) {
+   node_id_t row = engine_gui_node_create(eng);
+   engine_gui_node_set_type(eng, row, GUI_NODE_ROW);
+   gui_size_t row_size = {
     .type = GuiDimensionTypeDynamic,
-    .dynamic = { .height = height }
-  };
-  engine_gui_node_set_size(eng, row, row_size);
-  gui_layout_t row_layout = {
+    .value = { .dynamic = { .height = height } }
+   };
+   engine_gui_node_set_size(eng, row, row_size);
+   gui_layout_t row_layout = {
     .columns = columns,
-  };
-  engine_gui_node_set_layout(eng, row, row_layout);
-  engine_ecs_parent(eng, row, parent);
-  return row;
-}
+   };
+   engine_gui_node_set_layout(eng, row, row_layout);
+   engine_ecs_parent(eng, row, parent);
+   return row;
+   }
+ */
 
 /* gui_new_column */
-node_id_t
-gui_new_column(
-  engine_t *eng,
-  float width,
-  node_id_t parent
-) {
-  node_id_t column = engine_gui_node_create(eng);
-  engine_gui_node_set_type(eng, column, GUI_NODE_COLUMN);
-  gui_size_t column_size = {
+/*
+   static node_id_t
+   gui_new_column(
+   engine_t *eng,
+   float width,
+   node_id_t parent
+   ) {
+   node_id_t column = engine_gui_node_create(eng);
+   engine_gui_node_set_type(eng, column, GUI_NODE_COLUMN);
+   gui_size_t column_size = {
     .type = GuiDimensionTypeDynamic,
-    .dynamic = { .width = width }
-  };
-  engine_gui_node_set_size(eng, column, column_size);
-  engine_ecs_parent(eng, column, parent);
-  return column;
-}
+    .value = { .dynamic = { .width = width } }
+   };
+   engine_gui_node_set_size(eng, column, column_size);
+   engine_ecs_parent(eng, column, parent);
+   return column;
+   }
+ */
 
 /* gui_new_button */
-node_id_t
+static node_id_t
 gui_new_button(
   engine_t *eng,
   char *label,
   node_id_t parent
 ) {
-  node_id_t button = engine_gui_node_create(eng);
-  engine_gui_node_set_type(eng, button, GUI_NODE_BUTTON);
-  engine_gui_node_set_label(eng, button, (gui_label_t)label);
-  engine_ecs_parent(eng, button, parent);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  ecs_entity_t button = ecs_new_id(ecs_ctx);
+  ecs_add(ecs_ctx, button, GuiNodeButton);
+  ecs_set_ptr(ecs_ctx, button, gui_label_t, &label);
+  ecs_add_pair(ecs_ctx, button, EcsChildOf, parent);
   return button;
 }
 
 /* gui_new_textbox */
-node_id_t
+static node_id_t
 gui_new_textbox(
   engine_t *eng,
   node_id_t parent
 ) {
-  node_id_t textbox = engine_gui_node_create(eng);
-  engine_gui_node_set_type(eng, textbox, GUI_NODE_TEXTBOX);
-  engine_ecs_parent(eng, textbox, parent);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  ecs_entity_t textbox = ecs_new_id(ecs_ctx);
+  ecs_add(ecs_ctx, textbox, GuiNodeTextBox);
+  ecs_add_pair(ecs_ctx, textbox, EcsChildOf, parent);
   return textbox;
 }
 
+/* gui_new_dropdown */
+static node_id_t
+gui_new_dropdown(
+  engine_t *eng,
+  node_id_t parent,
+  char *label,
+  int width,
+  int height
+) {
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  gui_size_t size = {
+    .type = GuiDimensionTypeFixed,
+    .value = { .fixed = { .width = width, .height = height } }
+  };
+  gui_state_t state = { 0 };
+
+  ecs_entity_t dropdown = ecs_new_id(ecs_ctx);
+  ecs_add(ecs_ctx, dropdown, GuiNodeDropDown);
+  ecs_set_ptr(ecs_ctx, dropdown, gui_label_t, &label);
+  ecs_set_ptr(ecs_ctx, dropdown, gui_size_t, &size);
+  ecs_set_ptr(ecs_ctx, dropdown, gui_state_t, &state);
+  ecs_add_pair(ecs_ctx, dropdown, EcsChildOf, parent);
+  return dropdown;
+}
+
+/* gui_new_scene */
+static node_id_t
+gui_new_scene(
+  engine_t *eng,
+  node_id_t parent
+) {
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  ecs_entity_t scene = ecs_new_id(ecs_ctx);
+  engine_threed_node_make_scene(eng, scene);
+  ecs_add(ecs_ctx, scene, ThreeDNodeActive);
+  ecs_add(ecs_ctx, scene, GuiNodeScene);
+  ecs_add_pair(ecs_ctx, scene, EcsChildOf, parent);
+  return scene;
+}
+
 /*
- *
+ * GUI Node Tree
  */
 
 /* gui_search_direction_t */
@@ -173,17 +236,18 @@ typedef enum {
 } gui_search_direction_t;
 
 /* gui_get_children */
-int
+static int
 gui_get_children(
   engine_t *eng,
   node_id_t node,
   node_id_t *children
 ) {
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
   node_id_t chldrn[2] = { 0 };
   int num_children = engine_ecs_get_children_of(eng, node, chldrn, 2);
 
-  gui_node_anchor_t a_anchor = engine_gui_node_get_anchor(eng, chldrn[0]);
-  if (a_anchor == GUI_ANCHOR_A) {
+  const gui_anchor_t *a_anchor = ecs_get(ecs_ctx, chldrn[0], gui_anchor_t);
+  if (*a_anchor == GUI_ANCHOR_A) {
     children[0] = chldrn[0];
     children[1] = chldrn[1];
   } else {
@@ -194,13 +258,14 @@ gui_get_children(
 }
 
 /* gui_search_for_split */
-node_id_t
+static node_id_t
 gui_search_for_split(
   engine_t *eng,
   node_id_t leaf,
   gui_node_type_t type
 ) {
-  node_id_t parent = engine_ecs_get_parent_of(eng, leaf);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+  node_id_t parent = ecs_get_target(ecs_ctx, leaf, EcsChildOf, 0);
   if (parent == 0) {
     return 0;
   } else {
@@ -214,29 +279,33 @@ gui_search_for_split(
 }
 
 /* gui_set_xoff_yoff */
-void
+static void
 gui_set_xoff_yoff(
   engine_t *eng,
   node_id_t node,
   int xoff,
   int yoff
 ) {
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
   gui_layout_t layout = {
     .xoff = xoff,
     .yoff = yoff
   };
-  engine_gui_node_set_layout(eng, node, layout);
+  ecs_set_ptr(ecs_ctx, node, gui_layout_t, &layout);
 }
 
 /* gui_search_next_pane */
-node_id_t
+static node_id_t
 gui_search_next_pane(
   engine_t *eng,
   node_id_t node,
   gui_search_direction_t direction
 ) {
+  printf("gui_search_next_pane node(%lld)\n", (long long)node);
   gui_node_type_t type = engine_gui_node_get_type(eng, node);
   if (type == GUI_NODE_PANE) {
+    printf("Node(%lld) is Pane\n", (long long)node);
     return node;
   } else {
     node_id_t children[2];
@@ -258,13 +327,14 @@ gui_search_next_pane(
 }
 
 /* gui_reverse_search_next_pane */
-node_id_t
+static node_id_t
 gui_reverse_search_next_pane(
   engine_t *eng,
   node_id_t node,
   gui_search_direction_t direction
 ) {
-  node_id_t parent = engine_ecs_get_parent_of(eng, node);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+  node_id_t parent = ecs_get_target(ecs_ctx, node, EcsChildOf, 0);
   if (parent <= 0) {
     return 0;
   }
@@ -282,7 +352,7 @@ gui_reverse_search_next_pane(
   } else {
     sibling = a;
   }
-  const gui_layout_t *slayout = engine_gui_node_get_layout(eng, sibling);
+  const gui_layout_t *slayout = ecs_get(ecs_ctx, sibling, gui_layout_t);
   switch (direction) {
   case UP:
     if (slayout->xoff == 0 && slayout->yoff == 1) {
@@ -314,7 +384,7 @@ gui_reverse_search_next_pane(
 }
 
 /* gui_resize_pane_vertical */
-void
+static void
 gui_resize_pane_vertical(
   engine_t *eng,
   node_id_t node,
@@ -324,23 +394,28 @@ gui_resize_pane_vertical(
   if (target == 0) {
     return;
   }
-  const gui_size_t *old_size
-    = engine_gui_node_get_size(eng, target);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+  const gui_size_t *old_size = ecs_get(ecs_ctx, target, gui_size_t);
   gui_size_t size = {
     .type = GuiDimensionTypeDynamic,
-    .dynamic = { .width = old_size->dynamic.width + delta, .height = old_size->dynamic.height }
+    .value = {
+      .dynamic = {
+        .width = old_size->value.dynamic.width + delta,
+        .height = old_size->value.dynamic.height
+      }
+    }
   };
-  if (size.dynamic.width < 0.0) {
-    size.dynamic.width = 0.0;
+  if (size.value.dynamic.width < 0.0) {
+    size.value.dynamic.width = 0.0;
   }
-  if (size.dynamic.width > 1.0) {
-    size.dynamic.width = 1.0;
+  if (size.value.dynamic.width > 1.0) {
+    size.value.dynamic.width = 1.0;
   }
-  engine_gui_node_set_size(eng, target, size);
+  ecs_set_ptr(ecs_ctx, target, gui_size_t, &size);
 }
 
 /* gui_resize_pane_horizontal */
-void
+static void
 gui_resize_pane_horizontal(
   engine_t *eng,
   node_id_t node,
@@ -350,93 +425,110 @@ gui_resize_pane_horizontal(
   if (target == 0) {
     return;
   }
-  const gui_size_t *old_size
-    = engine_gui_node_get_size(eng, target);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+  const gui_size_t *old_size = ecs_get(ecs_ctx, target, gui_size_t);
   gui_size_t size = {
     .type = GuiDimensionTypeDynamic,
-    .dynamic = { .width = old_size->dynamic.width, .height = old_size->dynamic.height + delta }
+    .value = {
+      .dynamic = {
+        .width = old_size->value.dynamic.width,
+        .height = old_size->value.dynamic.height + delta
+      }
+    }
   };
-  if (size.dynamic.height < 0.0) {
-    size.dynamic.height = 0.0;
+  if (size.value.dynamic.height < 0.0) {
+    size.value.dynamic.height = 0.0;
   }
-  if (size.dynamic.height > 1.0) {
-    size.dynamic.height = 1.0;
+  if (size.value.dynamic.height > 1.0) {
+    size.value.dynamic.height = 1.0;
   }
-  engine_gui_node_set_size(eng, target, size);
+  ecs_set_ptr(ecs_ctx, target, gui_size_t, &size);
 }
 
 /* gui_split_pane_vertical */
-node_id_t
+static node_id_t
 gui_split_pane_vertical(
   engine_t *eng,
   node_id_t node
 ) {
-  node_id_t parent = engine_ecs_get_parent_of(eng, node);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  node_id_t parent = ecs_get_target(ecs_ctx, node, EcsChildOf, 0);
   node_id_t vsplit = gui_new_vsplit(eng, parent);
-  gui_node_anchor_t anchor = engine_gui_node_get_anchor(eng, node);
-  engine_gui_node_set_anchor(eng, vsplit, anchor);
-  const gui_layout_t *layout = engine_gui_node_get_layout(eng, node);
-  engine_gui_node_set_layout(eng, vsplit, *layout);
+  const gui_anchor_t *anchor = ecs_get(ecs_ctx, node, gui_anchor_t);
+  const gui_layout_t *layout = ecs_get(ecs_ctx, node, gui_layout_t);
+  ecs_set_ptr(ecs_ctx, vsplit, gui_anchor_t, anchor);
+  ecs_set_ptr(ecs_ctx, vsplit, gui_layout_t, layout);
 
   node_id_t pane1 = node;
-  engine_ecs_parent(eng, pane1, vsplit);
-  engine_gui_node_set_anchor(eng, pane1, GUI_ANCHOR_A);
+  ecs_add_pair(ecs_ctx, pane1, EcsChildOf, vsplit);
+  ecs_set(ecs_ctx, pane1, gui_anchor_t, { GUI_ANCHOR_A });
   gui_set_xoff_yoff(eng, pane1, -1, 0);
 
   node_id_t pane2 = gui_new_pane(eng, "", vsplit);
-  engine_gui_node_set_anchor(eng, pane2, GUI_ANCHOR_B);
+  ecs_set(ecs_ctx, pane2, gui_anchor_t, { GUI_ANCHOR_B });
   gui_set_xoff_yoff(eng, pane2, 1, 0);
+  gui_new_dropdown(eng, pane2, "SCENE;TERM;PROPS", 135, 30);
   return pane2;
 }
 
 /* gui_split_pane_horizontal */
-node_id_t
+static node_id_t
 gui_split_pane_horizontal(
   engine_t *eng,
   node_id_t node
 ) {
-  node_id_t parent = engine_ecs_get_parent_of(eng, node);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  node_id_t parent = ecs_get_target(ecs_ctx, node, EcsChildOf, 0);
   node_id_t hsplit = gui_new_hsplit(eng, parent);
-  gui_node_anchor_t anchor = engine_gui_node_get_anchor(eng, node);
-  engine_gui_node_set_anchor(eng, hsplit, anchor);
-  const gui_layout_t *layout = engine_gui_node_get_layout(eng, node);
-  engine_gui_node_set_layout(eng, hsplit, *layout);
+  const gui_anchor_t *anchor = ecs_get(ecs_ctx, node, gui_anchor_t);
+  const gui_layout_t *layout = ecs_get(ecs_ctx, node, gui_layout_t);
+  ecs_set_ptr(ecs_ctx, hsplit, gui_anchor_t, anchor);
+  ecs_set_ptr(ecs_ctx, hsplit, gui_layout_t, layout);
 
   node_id_t pane1 = node;
-  engine_ecs_parent(eng, pane1, hsplit);
-  engine_gui_node_set_anchor(eng, pane1, GUI_ANCHOR_A);
+  ecs_add_pair(ecs_ctx, pane1, EcsChildOf, hsplit);
+  ecs_set(ecs_ctx, pane1, gui_anchor_t, { GUI_ANCHOR_A });
   gui_set_xoff_yoff(eng, pane1, 0, 1);
 
   node_id_t pane2 = gui_new_pane(eng, "", hsplit);
-  engine_gui_node_set_anchor(eng, pane2, GUI_ANCHOR_B);
+  ecs_set(ecs_ctx, pane2, gui_anchor_t, { GUI_ANCHOR_B });
   gui_set_xoff_yoff(eng, pane2, 0, -1);
+  gui_new_dropdown(eng, pane2, "SCENE;TERM;PROPS", 135, 30);
   return pane2;
 }
 
 /* gui_delete_pane */
-node_id_t
+static node_id_t
 gui_delete_pane(
   engine_t *eng,
   node_id_t window,
   node_id_t node
 ) {
-  node_id_t parent = engine_ecs_get_parent_of(eng, node);
+  printf("gui_delete_pane node(%lld)\n", (long long)node);
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+
+  node_id_t parent = ecs_get_target(ecs_ctx, node, EcsChildOf, 0);
   if (parent == 0 || parent == window) {
-    return node;
+    return 0;
   }
-  node_id_t grand_parent = engine_ecs_get_parent_of(eng, parent);
-  engine_gui_node_delete(eng, node);
+  node_id_t grand_parent = ecs_get_target(ecs_ctx, parent, EcsChildOf, 0);
+  ecs_delete(ecs_ctx, node);
   node_id_t children[1] = { 0 };
   engine_ecs_get_children_of(eng, parent, children, 1);
-  gui_node_anchor_t anchor = engine_gui_node_get_anchor(eng, parent);
-  engine_gui_node_set_anchor(eng, children[0], anchor);
-  const gui_layout_t *layout = engine_gui_node_get_layout(eng, parent);
-  engine_gui_node_set_layout(eng, children[0], *layout);
+  const gui_anchor_t *anchor = ecs_get(ecs_ctx, parent, gui_anchor_t);
+  const gui_layout_t *layout = ecs_get(ecs_ctx, parent, gui_layout_t);
+  node_id_t sibling = children[0];
+  ecs_set_ptr(ecs_ctx, sibling, gui_anchor_t, anchor);
+  ecs_set_ptr(ecs_ctx, sibling, gui_layout_t, layout);
 
-  engine_ecs_parent(eng, children[0], grand_parent);
-  engine_gui_node_delete(eng, parent);
+  ecs_add_pair(ecs_ctx, sibling, EcsChildOf, grand_parent);
+  ecs_delete(ecs_ctx, parent);
 
-  return gui_search_next_pane(eng, children[0], UP);
+  node_id_t target = gui_search_next_pane(eng, sibling, UP);
+  printf("gui_delete_pane target(%lld)\n", (long long)target);
+  return target;
 }
 
 /*
@@ -444,10 +536,25 @@ gui_delete_pane(
  */
 
 /* gui_plugin_init */
-gui_plugin_t*
-gui_plugin_init() {
+node_id_t
+gui_plugin_init(
+  engine_t *eng
+) {
+  printf("INIT gui plugin\n");
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
+  ECS_TAG_DEFINE(ecs_ctx, GuiPlugin);
+  ECS_SYSTEM(ecs_ctx, gui_plugin_system, EcsOnUpdate, plugin_t, GuiPlugin);
+
+  ecs_entity_t plugin = ecs_new_id(ecs_ctx);
   gui_plugin_t *plug = malloc(sizeof(gui_plugin_t));
-  return plug;
+  ecs_add(ecs_ctx, plugin, GuiPlugin);
+  ecs_set(ecs_ctx, plugin, plugin_t, {
+    .eng = eng,
+    .plugin = plug,
+    .load = &gui_plugin_load,
+    .unload = &gui_plugin_unload
+  });
+  return plugin;
 }
 
 /* gui_plugin_deinit */
@@ -455,6 +562,7 @@ int
 gui_plugin_deinit(
   gui_plugin_t *plug
 ) {
+  printf("DEINIT gui plugin\n");
   free(plug);
   return 0;
 }
@@ -468,10 +576,15 @@ gui_plugin_load(
   printf("LOAD gui plugin\n");
 
   gui_plugin_t *gui_plug = (gui_plugin_t*)plug;
+  ecs_world_t *ecs_ctx = engine_ecs_context(eng);
   node_id_t window = gui_new_window(eng, 0, 0, 1.0, 1.0, "Inkimera Editor");
   node_id_t pane = gui_new_pane(eng, "", window);
-  engine_gui_node_set_anchor(eng, pane, GUI_ANCHOR_ROOT);
-  engine_gui_node_focus(eng, pane);
+  ecs_set(ecs_ctx, pane, gui_anchor_t, { GUI_ANCHOR_ROOT });
+  ecs_add(ecs_ctx, pane, GuiFocus);
+
+  ecs_entity_t scene = gui_new_scene(eng, pane);
+
+  gui_new_dropdown(eng, pane, "SCENE;TERM;PROPS", 135, 30);
   gui_plug->window = window;
   gui_plug->focus = pane;
   gui_plug->timestamp = time(NULL);
@@ -480,7 +593,7 @@ gui_plugin_load(
   state_machine_state_t *idle_state = state_machine_add_state(&gui_plug->state, "idle");
   state_machine_state_t *leader_key_held_state = state_machine_add_state(&gui_plug->state, "leader_key_held");
   state_machine_state_t *leader_key_released_state = state_machine_add_state(&gui_plug->state, "leader_key_released");
-  state_machine_state_t *command_state = state_machine_add_state(&gui_plug->state, "command");
+  //state_machine_state_t *command_state = state_machine_add_state(&gui_plug->state, "command");
 
   state_machine_event_t *event_leader_held =
     state_machine_add_event(&gui_plug->state, (int[2]) { ENGINE_KEY_LEFT_CONTROL, ENGINE_KEY_A }, (int[2]) { ENGINE_KEY_STATE_DOWN, ENGINE_KEY_STATE_DOWN }, 2);
@@ -502,17 +615,19 @@ gui_plugin_unload(
   void *plug
 ) {
   printf("UNLOAD gui plugin\n");
+  (void)eng;
   gui_plugin_t *gui_plug = (gui_plugin_t*)plug;
   return gui_plugin_deinit(gui_plug);
 }
 
-/* gui_plugin_events */
+/* gui_plugin_system */
 void
-gui_plugin_events(
-  engine_t *eng,
-  void *plug
+gui_plugin_system(
+  ecs_iter_t *it
 ) {
-  gui_plugin_t *gui_plug = (gui_plugin_t*)plug;
+  const plugin_t *plugs = ecs_field(it, plugin_t, 1);
+  engine_t *eng = plugs[0].eng;
+  gui_plugin_t *gui_plug = (gui_plugin_t*)plugs[0].plugin;
 
   engine_key_state_t escape = engine_key_state_get(ENGINE_KEY_ESCAPE);
   engine_key_state_t ctrl = engine_key_state_get(ENGINE_KEY_LEFT_CONTROL) | engine_key_state_get(ENGINE_KEY_RIGHT_CONTROL);
@@ -535,6 +650,7 @@ gui_plugin_events(
     }
     gui_plug->timestamp = now;
   } else {
+    ecs_world_t *ecs_ctx = engine_ecs_context(eng);
     char *current_state = state_machine_get_state(&gui_plug->state);
     engine_key_state_t up = engine_key_state_get(ENGINE_KEY_UP);
     engine_key_state_t down = engine_key_state_get(ENGINE_KEY_DOWN);
@@ -568,49 +684,53 @@ gui_plugin_events(
         = engine_key_state_get(ENGINE_KEY_X);
       if (shift & ENGINE_KEY_STATE_DOWN
           && five & ENGINE_KEY_STATE_RELEASED) {
-        engine_gui_node_unfocus(eng, gui_plug->focus);
+        ecs_remove(ecs_ctx, gui_plug->focus, GuiFocus);
         gui_plug->focus = gui_split_pane_vertical(eng, gui_plug->focus);
-        engine_gui_node_focus(eng, gui_plug->focus);
+        ecs_add(ecs_ctx, gui_plug->focus, GuiFocus);
         state_machine_set_state(&gui_plug->state, "idle");
       } else if (shift & ENGINE_KEY_STATE_DOWN
                  && apostrophe & ENGINE_KEY_STATE_RELEASED) {
-        engine_gui_node_unfocus(eng, gui_plug->focus);
+        ecs_remove(ecs_ctx, gui_plug->focus, GuiFocus);
         gui_plug->focus = gui_split_pane_horizontal(eng, gui_plug->focus);
-        engine_gui_node_focus(eng, gui_plug->focus);
+        ecs_add(ecs_ctx, gui_plug->focus, GuiFocus);
         state_machine_set_state(&gui_plug->state, "idle");
       } else if (x & ENGINE_KEY_STATE_RELEASED) {
-        gui_plug->focus = gui_delete_pane(eng, gui_plug->window, gui_plug->focus);
-        engine_gui_node_focus(eng, gui_plug->focus);
+        node_id_t target = gui_delete_pane(eng, gui_plug->window, gui_plug->focus);
+        printf("Target(%lld)\n", (long long)target);
+        if (target != 0) {
+          gui_plug->focus = target;
+        }
+        ecs_add(ecs_ctx, gui_plug->focus, GuiFocus);
         gui_plug->timestamp = now;
         state_machine_set_state(&gui_plug->state, "idle");
       } else if (up & ENGINE_KEY_STATE_RELEASED) {
-        engine_gui_node_unfocus(eng, gui_plug->focus);
+        ecs_remove(ecs_ctx, gui_plug->focus, GuiFocus);
         node_id_t target = gui_reverse_search_next_pane(eng, gui_plug->focus, UP);
         if (target != 0) {
           gui_plug->focus = target;
         }
-        engine_gui_node_focus(eng, gui_plug->focus);
+        ecs_add(ecs_ctx, gui_plug->focus, GuiFocus);
       } else if (down & ENGINE_KEY_STATE_RELEASED) {
-        engine_gui_node_unfocus(eng, gui_plug->focus);
+        ecs_remove(ecs_ctx, gui_plug->focus, GuiFocus);
         node_id_t target = gui_reverse_search_next_pane(eng, gui_plug->focus, DOWN);
         if (target != 0) {
           gui_plug->focus = target;
         }
-        engine_gui_node_focus(eng, gui_plug->focus);
+        ecs_add(ecs_ctx, gui_plug->focus, GuiFocus);
       } else if (left & ENGINE_KEY_STATE_RELEASED) {
-        engine_gui_node_unfocus(eng, gui_plug->focus);
+        ecs_remove(ecs_ctx, gui_plug->focus, GuiFocus);
         node_id_t target = gui_reverse_search_next_pane(eng, gui_plug->focus, LEFT);
         if (target != 0) {
           gui_plug->focus = target;
         }
-        engine_gui_node_focus(eng, gui_plug->focus);
+        ecs_add(ecs_ctx, gui_plug->focus, GuiFocus);
       } else if (right & ENGINE_KEY_STATE_RELEASED) {
-        engine_gui_node_unfocus(eng, gui_plug->focus);
+        ecs_remove(ecs_ctx, gui_plug->focus, GuiFocus);
         node_id_t target = gui_reverse_search_next_pane(eng, gui_plug->focus, RIGHT);
         if (target != 0) {
           gui_plug->focus = target;
         }
-        engine_gui_node_focus(eng, gui_plug->focus);
+        ecs_add(ecs_ctx, gui_plug->focus, GuiFocus);
       }
     }
   }

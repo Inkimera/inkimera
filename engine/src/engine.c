@@ -9,12 +9,15 @@
 #include "raylib.h"
 #include "raygui.h"
 
+#include "hashmap.h"
 #include "signal.h"
 
 #include "engine.h"
-#include "entities/gui_node.h"
-
-#include "hashmap.h"
+#include "components/plugin_components.h"
+#include "components/gui_components.h"
+#include "components/3d_components.h"
+#include "systems/gui_systems.h"
+#include "systems/3d_systems.h"
 
 #define int_t int
 DECLARE_HASHMAP(int_t)
@@ -47,7 +50,9 @@ static const GuiStyleProp inkimera_style_props[INKIMERA_STYLE_PROPS_COUNT] = {
 
 /* engine_init */
 engine_t*
-engine_init() {
+engine_init(
+  void
+) {
   const int screenWidth = GetRenderHeight();
   const int screenHeight = GetRenderWidth();
   InitWindow(screenWidth, screenHeight, "Inkimera");
@@ -55,20 +60,26 @@ engine_init() {
   SetExitKey(KEY_NULL);
 
   engine_t *eng = malloc(sizeof(engine_t));
+  //eng->plugin_count = 0;
+  //eng->plugins =
+  //  malloc(MAX_PLUGINS * sizeof(plugin_handle_t*));
+  eng->ecs_ctx = ecs_init();
   int fontSize = 14;
   eng->font = LoadFontEx("engine/resources/fonts/IBMPlexMono-Regular.ttf", fontSize, NULL, 0);
-  eng->plugin_count = 0;
-  eng->plugins =
-    malloc(MAX_PLUGINS * sizeof(plugin_handle_t*));
-  eng->ecs_ctx = ecs_init();
   for (int i = 0; i < INKIMERA_STYLE_PROPS_COUNT; i++) {
     GuiSetStyle(inkimera_style_props[i].controlId, inkimera_style_props[i].propertyId, inkimera_style_props[i].propertyValue);
   }
   GuiSetFont(eng->font);
-  gui_system_init(eng);
   SetTextureFilter(eng->font.texture, TEXTURE_FILTER_POINT);
   SetTargetFPS(60);
   ecs_set_target_fps(eng->ecs_ctx, 60);
+
+  // Init ecs systems
+  plugin_components_init(eng);
+  gui_components_init(eng);
+  threed_components_init(eng);
+  gui_systems_init(eng);
+  threed_systems_init(eng);
   return eng;
 }
 
@@ -78,13 +89,15 @@ engine_deinit(
   engine_t *eng
 ) {
   CloseWindow();
-  while (eng->plugin_count-- > 0) {
-    plugin_handle_t *handle =
+  /*
+     while (eng->plugin_count-- > 0) {
+     plugin_handle_t *handle =
       eng->plugins[eng->plugin_count];
-    handle->unload(eng, handle->plugin);
-    free(handle);
-    eng->plugins[eng->plugin_count] = NULL;
-  }
+     handle->unload(eng, handle->plugin);
+     free(handle);
+     eng->plugins[eng->plugin_count] = NULL;
+     }
+   */
   ecs_fini(eng->ecs_ctx);
   UnloadFont(eng->font);
   free(eng);
@@ -124,41 +137,12 @@ engine_key_state_get(
  * ENGINE ECS
  */
 
-/* engine_ecs_parent */
-int
-engine_ecs_parent(
-  engine_t *eng,
-  node_id_t child,
-  node_id_t parent
+/* engine_ecs_context */
+ecs_world_t*
+engine_ecs_context(
+  engine_t *eng
 ) {
-  ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  ecs_add_pair(ecs_ctx, child, EcsChildOf, parent);
-  return 0;
-}
-
-/* engine_ecs_child_of */
-int
-engine_ecs_unparent(
-  engine_t *eng,
-  node_id_t child,
-  node_id_t parent
-) {
-  ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  ecs_remove_pair(ecs_ctx, child, EcsChildOf, parent);
-  return 0;
-}
-
-/* engine_ecs_get_parent_of */
-node_id_t
-engine_ecs_get_parent_of(
-  engine_t *eng,
-  node_id_t node
-) {
-  ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  //char *path = ecs_get_fullpath(ecs_ctx, node);
-  //printf("%s\n", path);
-  //ecs_os_free(path);
-  return ecs_get_target(ecs_ctx, node, EcsChildOf, 0);
+  return eng->ecs_ctx;
 }
 
 /* engine_ecs_get_children_of */
@@ -174,7 +158,7 @@ engine_ecs_get_children_of(
   int num_children = 0;
   while (ecs_children_next(&it)) {
     for (int i = 0; i < it.count; i++) {
-      if (num_children > max_children) {
+      if (num_children >= max_children) {
         return -1;
       }
       ecs_entity_t child = it.entities[i];
@@ -186,24 +170,9 @@ engine_ecs_get_children_of(
   return num_children;
 }
 
-
-/* engine_gui_node_create */
-node_id_t
-engine_gui_node_create(
-  engine_t *eng
-) {
-  return gui_node_init(eng);
-}
-
-/* engine_gui_node_delete */
-void
-engine_gui_node_delete(
-  engine_t *eng,
-  node_id_t node
-) {
-  ecs_world_t *ecs_ctx = eng->ecs_ctx;
-  ecs_delete(ecs_ctx, node);
-}
+/*
+ * ENGINE ECS (GUI)
+ */
 
 /* engine_gui_node_get_type */
 gui_node_type_t
@@ -224,135 +193,17 @@ engine_gui_node_set_type(
   return gui_node_set_type(eng, node, type);
 }
 
-/* engine_gui_node_focus */
-int
-engine_gui_node_focus(
-  engine_t *eng,
-  node_id_t node
-) {
-  gui_node_focus(eng, node);
-  return 0;
-}
-
-/* engine_gui_node_unfocus */
-int
-engine_gui_node_unfocus(
-  engine_t *eng,
-  node_id_t node
-) {
-  gui_node_unfocus(eng, node);
-  return 0;
-}
-
-/* engine_gui_node_get_anchor */
-gui_node_anchor_t
-engine_gui_node_get_anchor(
-  engine_t *eng,
-  node_id_t node
-) {
-  return gui_node_get_anchor(eng, node);
-}
-
-/* engine_gui_node_set_anchor */
-int
-engine_gui_node_set_anchor(
-  engine_t *eng,
-  node_id_t node,
-  gui_node_anchor_t anchor
-) {
-  return gui_node_set_anchor(eng, node, anchor);
-}
-
-/* engine_gui_node_set_label */
-int
-engine_gui_node_set_label(
-  engine_t *eng,
-  node_id_t node,
-  gui_label_t label
-) {
-  return gui_node_set_label(eng, node, label);
-}
-
-/* engine_gui_node_set_position */
-int
-engine_gui_node_set_position(
-  engine_t *eng,
-  node_id_t node,
-  gui_position_t position
-) {
-  return gui_node_set_position(eng, node, position);
-}
-
-/* engine_gui_node_get_size */
-const gui_size_t*
-engine_gui_node_get_size(
-  engine_t *eng,
-  node_id_t node
-) {
-  return gui_node_get_size(eng, node);
-}
-
-/* engine_gui_node_set_size */
-int
-engine_gui_node_set_size(
-  engine_t *eng,
-  node_id_t node,
-  gui_size_t size
-) {
-  return gui_node_set_size(eng, node, size);
-}
-
-/* engine_gui_node_get_layout */
-const gui_layout_t*
-engine_gui_node_get_layout(
-  engine_t *eng,
-  node_id_t node
-) {
-  return gui_node_get_layout(eng, node);
-}
-
-/* engine_gui_node_set_layout */
-int
-engine_gui_node_set_layout(
-  engine_t *eng,
-  node_id_t node,
-  gui_layout_t layout
-) {
-  return gui_node_set_layout(eng, node, layout);
-}
-
 /*
- * ENGINE PLUGIN
+ * ENGINE ECS (3D)
  */
 
-/* engine_create_plugin */
-plugin_handle_t*
-engine_create_plugin(
-  engine_t *eng,
-  void *plug,
-  load_handle_t load,
-  unload_handle_t unload,
-  update_handle_t update
-) {
-  plugin_handle_t *handle = malloc(sizeof(plugin_handle_t));
-
-  handle->plugin = plug;
-  handle->load = load;
-  handle->unload = unload;
-  handle->update = update;
-
-  return handle;
-}
-
-/* engine_register_plugin */
+/* engine_threed_node_make_scene */
 int
-engine_register_plugin(
+engine_threed_node_make_scene(
   engine_t *eng,
-  plugin_handle_t *handle
+  node_id_t node
 ) {
-  handle->load(eng, handle->plugin);
-  eng->plugins[eng->plugin_count++] = handle;
-  return 0;
+  return threed_node_make_scene(eng, node);
 }
 
 /*
@@ -365,11 +216,14 @@ engine_run(
   engine_t *eng
 ) {
   while (!WindowShouldClose()) {
-    int i = 0;
-    while (i < eng->plugin_count) {
-      plugin_handle_t *handle = eng->plugins[i++];
-      handle->update(eng, handle->plugin);
-    }
+    /*
+       int i = 0;
+       while (i < eng->plugin_count) {
+       plugin_handle_t *handle = eng->plugins[i++];
+       handle->update(eng, handle->plugin);
+       }
+     */
+
     // Render
     BeginDrawing();
     ClearBackground((Color) { 255, 0, 0, 0 });
