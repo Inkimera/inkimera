@@ -4,7 +4,7 @@
 #include "engine.h"
 
 /* ink_pipeline_init */
-int
+void
 ink_pipeline_init(
   engine_t *eng
 );

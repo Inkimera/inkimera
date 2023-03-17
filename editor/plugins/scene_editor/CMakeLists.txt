@@ -14,9 +14,11 @@ add_library(${PROJECT_NAME} ${srcFiles})
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/lib/hashmap/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/lib/raylib_nuklear/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/flecs/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/raylib/src)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/lua_cmake/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/nuklear)
 target_compile_options(${PROJECT_NAME} INTERFACE
   -Wall
   -Wextra

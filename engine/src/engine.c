@@ -21,9 +21,9 @@
 /*
  * ENGINE CORE
  */
-/* engine_init */
+/* ink_init */
 engine_t*
-engine_init(
+ink_init(
   void
 ) {
   const int screenWidth = GetRenderHeight();
@@ -35,7 +35,7 @@ engine_init(
 
   engine_t *eng = malloc(sizeof(engine_t));
   // Init GUI
-  int fontSize = 20;
+  int fontSize = 24;
   eng->font = LoadFontEx("engine/resources/fonts/IBMPlexMono-Regular.ttf", fontSize, NULL, 0);
   SetTextureFilter(eng->font.texture, TEXTURE_FILTER_POINT);
   eng->nk_ctx = nk_raylib_init(eng->font, (float)fontSize);
@@ -59,9 +59,9 @@ engine_init(
   return eng;
 }
 
-/* engine_deinit */
+/* ink_deinit */
 int
-engine_deinit(
+ink_deinit(
   engine_t *eng
 ) {
   CloseWindow();
@@ -76,23 +76,44 @@ engine_deinit(
  * INPUT
  */
 
-/* engine_key_state_get */
-engine_key_state_t
-engine_key_state_get(
-  engine_key_t key
+/* ink_key_state_get */
+ink_key_state_t
+ink_key_state_get(
+  ink_key_t key
 ) {
   int state = 0;
   if (IsKeyDown((int)key)) {
-    state |= ENGINE_KEY_STATE_DOWN;
+    state |= INK_KEY_STATE_DOWN;
   }
   if (IsKeyPressed((int)key)) {
-    state |= ENGINE_KEY_STATE_PRESSED;
+    state |= INK_KEY_STATE_PRESSED;
   }
   if (IsKeyReleased((int)key)) {
-    state |= ENGINE_KEY_STATE_RELEASED;
+    state |= INK_KEY_STATE_RELEASED;
   }
   if (IsKeyUp((int)key)) {
-    state |= ENGINE_KEY_STATE_UP;
+    state |= INK_KEY_STATE_UP;
+  }
+  return state;
+}
+
+/* ink_key_state_get */
+ink_key_state_t
+ink_mouse_state_get(
+  ink_mouse_t key
+) {
+  int state = 0;
+  if (IsMouseButtonDown((int)key)) {
+    state |= INK_KEY_STATE_DOWN;
+  }
+  if (IsMouseButtonPressed((int)key)) {
+    state |= INK_KEY_STATE_PRESSED;
+  }
+  if (IsMouseButtonReleased((int)key)) {
+    state |= INK_KEY_STATE_RELEASED;
+  }
+  if (IsMouseButtonUp((int)key)) {
+    state |= INK_KEY_STATE_UP;
   }
   return state;
 }
@@ -105,17 +126,17 @@ engine_key_state_get(
  * ENGINE ECS
  */
 
-/* engine_ecs_context */
+/* ink_ecs_context */
 ecs_world_t*
-engine_ecs_context(
+ink_ecs_context(
   engine_t *eng
 ) {
   return eng->ecs_ctx;
 }
 
-/* engine_ecs_get_children_of */
+/* ink_ecs_get_children_of */
 int
-engine_ecs_get_children_of(
+ink_ecs_get_children_of(
   ecs_world_t *ecs_ctx,
   node_id_t node,
   node_id_t *children,
@@ -141,9 +162,9 @@ engine_ecs_get_children_of(
  * ENGINE RUNTIME
  */
 
-/* engine_run */
+/* ink_run */
 void
-engine_run(
+ink_run(
   engine_t *eng
 ) {
   while (!WindowShouldClose()) {

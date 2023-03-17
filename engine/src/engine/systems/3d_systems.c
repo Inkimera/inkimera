@@ -16,6 +16,7 @@ threed_systems_init(
 ) {
   ECS_SYSTEM(eng->ecs_ctx, threed_node_system_pre, InkOnPreRender);
   ECS_SYSTEM(eng->ecs_ctx, threed_node_system_post, InkOnPostRender);
+
   ECS_SYSTEM(eng->ecs_ctx, threed_node_system, InkOnUpdate, ThreeDNodeActive);
   ECS_SYSTEM(eng->ecs_ctx, threed_render_node_system, InkOnRender, threed_camera_t, threed_position_t, threed_rotation_t, threed_render_texture_t, ThreeDNodeActive);
 
@@ -27,7 +28,7 @@ threed_get_scene_camera(
   ecs_world_t *ecs_ctx,
   node_id_t scene_node,
   node_id_t camera_node,
-  threed_camera_t *camera_prop,
+  threed_camera_t *camera,
   threed_position_t *camera_pos,
   threed_rotation_t *camera_rot
 ) {
@@ -39,7 +40,7 @@ threed_get_scene_camera(
     const threed_position_t *pos = ecs_get(ecs_ctx, parent, threed_position_t);
     const threed_rotation_t *rot = ecs_get(ecs_ctx, parent, threed_rotation_t);
     camera_transforms[j++] = (threed_transform_t) {
-      .position = { .x = pos->x, .y = pos->y, .z = pos->z },
+      .position = *pos,
       .rotation = { .x = -rot->x * DEG2RAD, .y = -rot->y * DEG2RAD, .z = rot->z * DEG2RAD }
     };
     parent = ecs_get_target(ecs_ctx, parent, EcsChildOf, 0);
@@ -54,32 +55,14 @@ threed_get_scene_camera(
       camera_transform = MatrixMultiply(pos, camera_transform);
     } while (j > 0);
   }
-  Camera camera = { 0 };
-  camera.fovy = camera_prop->fov;
-  Vector3 up = { .x = camera_prop->up.x, .y = camera_prop->up.y, .z = camera_prop->up.z };
-  camera.up = Vector3Normalize(up);
-  Vector3 target = { .x = camera_prop->target.x, .y = camera_prop->target.y, .z = camera_prop->target.z };
-  camera.target = target;
-  Vector3 pos = { .x = camera_pos->x, .y = camera_pos->y, .z = camera_pos->z };
-  camera.position = Vector3Transform(pos, camera_transform);
-  camera.projection = CAMERA_PERSPECTIVE;
-
-  Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
-  Vector3 right = Vector3CrossProduct(up, forward);
-
-  // Pitch
-  Vector3 target_position = Vector3Subtract(camera.target, camera.position);
-  target_position = Vector3RotateByAxisAngle(target_position, right, -camera_rot->x * DEG2RAD);
-  camera.target = Vector3Add(camera.position, target_position);
-  //// Yaw
-  target_position = Vector3Subtract(camera.target, camera.position);
-  target_position = Vector3RotateByAxisAngle(target_position, camera.up, -camera_rot->y * DEG2RAD);
-  camera.target = Vector3Add(camera.position, target_position);
-  // Roll
-  // TODO
-  return camera;
+  Camera c = {
+    .fovy = camera->fov,
+    .up = Vector3Normalize(camera->up),
+    .position = Vector3Transform(*camera_pos, camera_transform),
+    .target = Vector3Transform(camera->target, camera_transform)
+  };
+  return c;
 }
-
 
 /* threed_node_system_pre */
 void
@@ -124,7 +107,6 @@ threed_draw_scene(
   void
 ) {
   //DrawPlane((Vector3) { 0, 0, 0 }, (Vector2) { 100, 100 }, BEIGE);
-  DrawGrid(10.0, 1.0);
   DrawCube((Vector3) { -1, 0.5, 0 }, 1, 1, 1, RED);
   DrawCube((Vector3) { 1, 0.5, 0 }, 1, 1, 1, GREEN);
   DrawCube((Vector3) { 0, 0.5, 1 }, 1, 1, 1, PINK);
@@ -138,7 +120,26 @@ threed_build_render_graph(
   ecs_entity_t node
 ) {
   //printf("threed_build_render_graph\n");
-  threed_draw_scene();
+  //threed_draw_scene();
+  const threed_position_t *position = ecs_get(ecs_ctx, node, threed_position_t);
+  const threed_rotation_t *rotation = ecs_get(ecs_ctx, node, threed_rotation_t);
+  rlPushMatrix();
+  {
+    rlScalef(1.0, 1.0, 1.0);
+    rlTranslatef(position->x, position->y, position->z);
+    rlRotatef(rotation->z, 0.0, 0.0, 1.0);
+    rlRotatef(rotation->y, 0.0, 1.0, 0.0);
+    rlRotatef(rotation->x, 1.0, 0.0, 0.0);
+    DrawCube((Vector3) { 0.0, 0.0, 0.0 }, 1, 1, 1, RED);
+    ecs_iter_t it = ecs_children(ecs_ctx, node);
+    while (ecs_children_next(&it)) {
+      for (int i = 0; i < it.count; i++) {
+        ecs_entity_t child = it.entities[i];
+        threed_build_render_graph(ecs_ctx, scene, child);
+      }
+    }
+  }
+  rlPopMatrix();
 }
 
 /* threed_render_node_system */
@@ -163,20 +164,32 @@ threed_render_node_system(
 
     Camera camera = threed_get_scene_camera(ecs_ctx, scene_node, camera_node, &camera_prop, &camera_pos, &camera_rot);
 
-    BeginTextureMode(render_texture.texture);
-    ClearBackground(SKYBLUE);
-    BeginMode3D(camera);
-    threed_build_render_graph(ecs_ctx, scene, scene_node);
-    EndMode3D();
-    DrawTextEx(GetFontDefault(), "SCENE", (Vector2) { 10, 10 }, 20, 2, RED);
-    //Rectangle source = { 0, 0, 1280, 720 };
-    //Rectangle dest = { 0, 0, 1280, 720 };
-    //DrawTexturePro(render_texture.texture.texture, source, dest, (Vector2) { .x = 0.0, .y = 0.0 }, 0.0, WHITE);
+    // Scene
+    BeginTextureMode(render_texture.fbo);
+    {
+      ClearBackground(SKYBLUE);
+      BeginMode3D(camera);
+      {
+        DrawGrid(100.0, 1.0);
+        ecs_iter_t it = ecs_children(ecs_ctx, scene_node);
+        while (ecs_children_next(&it)) {
+          for (int i = 0; i < it.count; i++) {
+            ecs_entity_t child = it.entities[i];
+            threed_build_render_graph(ecs_ctx, scene, child);
+          }
+        }
+      }
+      EndMode3D();
+      DrawTextEx(GetFontDefault(), "SCENE", (Vector2) { 10, 10 }, 40, 4, RED);
+    }
     EndTextureMode();
-
-    // sub optimal way to flip y
-    //Image img = LoadImageFromTexture(render_texture.texture.texture);
-    //ImageFlipVertical(&img);
-    //UpdateTexture(render_texture.texture.texture, img.data);
+    // Final image
+    BeginTextureMode(render_texture.texture);
+    {
+      // Flip y-axis of fbo texture
+      Rectangle source = { 0, 0, render_texture.texture.texture.width, render_texture.texture.texture.height };
+      DrawTexturePro(render_texture.fbo.texture, source, source, (Vector2) { .x = 0.0, .y = 0.0 }, 0.0, WHITE);
+    }
+    EndTextureMode();
   }
 }

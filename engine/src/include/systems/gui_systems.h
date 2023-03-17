@@ -13,12 +13,6 @@ gui_node_input_system(
   ecs_iter_t *it
 );
 
-/* gui_node_update_system */
-void
-gui_node_update_system(
-  ecs_iter_t *it
-);
-
 /* gui_node_render_system */
 void
 gui_node_render_system(

@@ -23,6 +23,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE plugins/gui/include)
 target_include_directories(${PROJECT_NAME} PRIVATE plugins/scene_editor/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../engine/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../engine/lib/hashmap/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ../engine/lib/raylib_nuklear/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ../engine/external/nuklear)
 target_compile_options(${PROJECT_NAME} INTERFACE
   -Wall
   -Wextra
