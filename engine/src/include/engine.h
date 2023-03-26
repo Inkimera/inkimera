@@ -10,6 +10,7 @@
 /* engine_t */
 struct engine {
   Font font;
+  Texture2D gui;
   struct nk_context *nk_ctx;
   ecs_world_t *ecs_ctx;
 };

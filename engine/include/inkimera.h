@@ -166,6 +166,16 @@ ink_deinit(
   engine_t *eng
 );
 
+/* ink_shutdown */
+void
+ink_shutdown(
+  engine_t *eng
+);
+
+/* engine_shutdown_t */
+typedef bool engine_shutdown_t;
+extern ECS_COMPONENT_DECLARE(engine_shutdown_t);
+
 /*
  * INPUT
  */

@@ -70,7 +70,7 @@ threed_node_system_pre(
   ecs_iter_t *it
 ) {
   BeginDrawing();
-  ClearBackground(BLACK);
+  ClearBackground(PINK);
 }
 
 /* threed_node_system_post */
@@ -78,7 +78,6 @@ void
 threed_node_system_post(
   ecs_iter_t *it
 ) {
-  DrawFPS(2, 2);
   EndDrawing();
 }
 
@@ -107,9 +106,9 @@ threed_draw_scene(
   void
 ) {
   //DrawPlane((Vector3) { 0, 0, 0 }, (Vector2) { 100, 100 }, BEIGE);
-  DrawCube((Vector3) { -1, 0.5, 0 }, 1, 1, 1, RED);
-  DrawCube((Vector3) { 1, 0.5, 0 }, 1, 1, 1, GREEN);
-  DrawCube((Vector3) { 0, 0.5, 1 }, 1, 1, 1, PINK);
+  DrawCube((Vector3) { -1.0, 0.5, 0 }, 1, 1, 1, RED);
+  DrawCube((Vector3) { 1.0, 0.5, 0 }, 1, 1, 1, GREEN);
+  DrawCube((Vector3) { 0.0, 0.5, 1 }, 1, 1, 1, PINK);
 }
 
 /* threed_build_render_graph */
@@ -130,7 +129,7 @@ threed_build_render_graph(
     rlRotatef(rotation->z, 0.0, 0.0, 1.0);
     rlRotatef(rotation->y, 0.0, 1.0, 0.0);
     rlRotatef(rotation->x, 1.0, 0.0, 0.0);
-    DrawCube((Vector3) { 0.0, 0.0, 0.0 }, 1, 1, 1, RED);
+    DrawCube((Vector3) { 0.0, 0.0, 0.0 }, 1, 1, 1, (Color) { 217, 143, 143, 255 });
     ecs_iter_t it = ecs_children(ecs_ctx, node);
     while (ecs_children_next(&it)) {
       for (int i = 0; i < it.count; i++) {
@@ -167,7 +166,7 @@ threed_render_node_system(
     // Scene
     BeginTextureMode(render_texture.fbo);
     {
-      ClearBackground(SKYBLUE);
+      ClearBackground((Color) { 217, 217, 217, 255 });
       BeginMode3D(camera);
       {
         DrawGrid(100.0, 1.0);
@@ -180,7 +179,11 @@ threed_render_node_system(
         }
       }
       EndMode3D();
-      DrawTextEx(GetFontDefault(), "SCENE", (Vector2) { 10, 10 }, 40, 4, RED);
+      //DrawFPS(2, 2);
+      int fps = GetFPS();
+      char scene_text[64];
+      snprintf(scene_text, 64, "FPS: %i", fps);
+      DrawTextEx(GetFontDefault(), scene_text, (Vector2) { 2, 2 }, 14, 4, (Color) { 217, 143, 143, 255 });
     }
     EndTextureMode();
     // Final image

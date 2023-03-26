@@ -37,7 +37,7 @@ state_machine_add_event(
   hashmap_state_machine_key_init(&event.keys);
   for (int i = 0; i < num_keys; i++) {
     char key_str[MAX_KEY_STR];
-    sprintf(key_str, "%d", keys[i]);
+    snprintf(key_str, MAX_KEY_STR, "%d", keys[i]);
     hashmap_state_machine_key_insert(&event.keys, key_str, (state_machine_key_t) { .key = keys[i], .action = actions[i] });
   }
   event.num_keys = num_keys;
@@ -81,7 +81,7 @@ state_machine_process(
     state_machine_event_t *event = transition->event;
     for (int j = 0; j < num_keys; j++) {
       char key_str[MAX_KEY_STR];
-      sprintf(key_str, "%d", keys[j]);
+      snprintf(key_str, MAX_KEY_STR, "%d", keys[j]);
       state_machine_key_t *event_key
         = hashmap_state_machine_key_lookup(&event->keys, key_str);
       if (event_key && event_key->action & actions[j]) {

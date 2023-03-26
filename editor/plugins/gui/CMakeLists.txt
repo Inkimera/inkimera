@@ -14,17 +14,21 @@ set(srcFiles
   src/systems/gui_update.c
   src/widgets/gui_scene_widget.c
   src/widgets/gui_scene_graph_widget.c
+  src/widgets/gui_menu_header_widget.c
+  src/widgets/gui_menu/gui_new_project_widget.c
+  src/widgets/gui_menu/gui_open_project_widget.c
 )
 
-add_library(${PROJECT_NAME} ${srcFiles})
+add_library(${PROJECT_NAME} STATIC ${srcFiles})
 target_include_directories(${PROJECT_NAME} PRIVATE include)
+target_include_directories(${PROJECT_NAME} PRIVATE ../../lib/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/lib/hashmap/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/lib/raylib_nuklear/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/flecs/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/raylib/src)
-target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/nuklear)
 target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/lua_cmake/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/nuklear)
+target_include_directories(${PROJECT_NAME} PRIVATE ../../../engine/external/raylib/src)
 target_compile_options(${PROJECT_NAME} INTERFACE
   -Wall
   -Wextra

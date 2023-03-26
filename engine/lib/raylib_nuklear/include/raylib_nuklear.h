@@ -8,7 +8,9 @@
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 /*#define NK_INCLUDE_FONT_BAKING
  #define NK_INCLUDE_DEFAULT_FONT
- #define NK_INCLUDE_COMMAND_USERDATA*/
+ #define NK_INCLUDE_COMMAND_USERDATA
+ #define NK_BUTTON_TRIGGER_ON_RELEASE
+ */
 #define NK_KEYSTATE_BASED_INPUT
 #define STBRP_STATIC
 #include "nuklear.h"
@@ -126,8 +128,6 @@ nk_raylib_init(
   f->width = &nk_raylib_font_get_text_width;
   f->query = &nk_raylib_font_glyph_query;
 
-  //nk_font_atlas_init_default(&atlas);
-  //nk_style_set_font(&ctx, &atlas.default_font->handle);
   struct nk_context *ctx = (struct nk_context*)malloc(sizeof(struct nk_context));
   nk_init_default(ctx, f);
   nk_style_set_font(ctx, f);
@@ -682,7 +682,7 @@ nk_raylib_draw(
 
   rlDisableDepthTest();
   rlDisableBackfaceCulling();
-  //BeginBlendMode(BLEND_ALPHA);
+  BeginBlendMode(BLEND_ALPHA);
   const struct nk_draw_command *cmd;
   int offset = 0;
   nk_draw_foreach(cmd, ctx, &cmds) {
@@ -706,6 +706,7 @@ nk_raylib_draw(
   EndScissorMode();
   rlEnableDepthTest();
   rlEnableBackfaceCulling();
+  EndBlendMode();
   nk_buffer_clear(&cmds);
   nk_clear(ctx);
 }

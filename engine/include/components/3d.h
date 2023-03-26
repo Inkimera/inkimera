@@ -1,6 +1,8 @@
 #ifndef INKIMERA_THREED_H
 #define INKIMERA_THREED_H
 
+#define INK_SCENE_NAME_MAX_SIZE 128
+
 /* ThreeDScene */
 extern ECS_TAG_DECLARE(ThreeDScene);
 
@@ -37,7 +39,8 @@ extern ECS_COMPONENT_DECLARE(threed_node_type_t);
 
 /* threed_scene_t */
 typedef struct {
-  int scene_id;
+  unsigned long scene_id;
+  char name[INK_SCENE_NAME_MAX_SIZE];
 } threed_scene_t;
 extern ECS_COMPONENT_DECLARE(threed_scene_t);
 

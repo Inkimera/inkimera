@@ -5,6 +5,7 @@ CMakeCache.txt
 Makefile
 *.cmake
 *.a
+*.so
 *-backup*
 inkimera_editor
 .DS_Store

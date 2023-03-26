@@ -17,4 +17,10 @@ typedef struct {
   struct nk_context *nk_ctx;
 } gui_nk_context_t;
 extern ECS_COMPONENT_DECLARE(gui_nk_context_t);
+
+/* gui_texture_t */
+typedef struct {
+  Texture2D texture;
+} gui_texture_t;
+extern ECS_COMPONENT_DECLARE(gui_texture_t);
 #endif

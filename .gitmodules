@@ -2,7 +2,7 @@
   shallow = true
   path = engine/external/raylib
   url = https://github.com/inkimera/raylib.git
-  branch = f9c9cc718fa3ecdf5640f5bf5e20edde1f1b8f8e
+  branch = 0538f17fa8ce15035fca99ad0ffd2001c87c4e9d
 [submodule "engine/external/flecs"]
   shallow = true
   path = engine/external/flecs
@@ -14,6 +14,10 @@
   url = https://github.com/lua/lua
   branch = 5d708c3f9cae12820e415d4f89c9eacbe2ab964b
 [submodule "engine/external/nuklear"]
-	path = engine/external/nuklear
-  url = https://github.com/Immediate-Mode-UI/Nuklear.git
+  path = engine/external/nuklear
+  url = https://github.com/inkimera/Nuklear.git
   branch = 1d9fb0bc79f8d4377a4dbc732c811b2d696c4c96
+[submodule "engine/external/toml"]
+  path = engine/external/toml
+  url = https://github.com/cktan/tomlc99.git
+  branch = 894902820a3ea2f1ec470cd7fe338bde54045cf5

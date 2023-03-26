@@ -51,10 +51,9 @@ scene_editor_plugin_load(
   printf("LOAD scene_editor plugin\n");
   ecs_world_t *ecs_ctx = ink_ecs_context(eng);
   // Scene
-  ecs_entity_t scene = ecs_new_id(ecs_ctx);
-  ecs_add(ecs_ctx, scene, ThreeDScene);
-  ecs_set(ecs_ctx, scene, threed_scene_t, { .scene_id = 0 });
-  printf("Scene Node(%lld)\n", (long long)scene);
+  //ecs_entity_t scene = ecs_new_id(ecs_ctx);
+  //ecs_add(ecs_ctx, scene, ThreeDScene);
+  //printf("Scene Node(%lld)\n", (long long)scene);
   return 0;
 }
 

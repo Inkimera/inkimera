@@ -18,6 +18,9 @@
 #include "systems/gui_systems.h"
 #include "systems/3d_systems.h"
 
+/* engine_shutdown_t */
+ECS_COMPONENT_DECLARE(engine_shutdown_t);
+
 /*
  * ENGINE CORE
  */
@@ -36,17 +39,14 @@ ink_init(
   engine_t *eng = malloc(sizeof(engine_t));
   // Init GUI
   int fontSize = 24;
-  eng->font = LoadFontEx("engine/resources/fonts/IBMPlexMono-Regular.ttf", fontSize, NULL, 0);
+  //eng->font = LoadFontEx("engine/resources/fonts/IBMPlexMono-Regular.ttf", fontSize, NULL, 0);
+  eng->font = LoadFontEx("engine/resources/fonts/Acakadut.ttf", fontSize, NULL, 0);
   SetTextureFilter(eng->font.texture, TEXTURE_FILTER_POINT);
   eng->nk_ctx = nk_raylib_init(eng->font, (float)fontSize);
-  eng->nk_ctx->style.window.spacing = nk_vec2(0, 0);
-  eng->nk_ctx->style.window.combo_border = 0;
-  eng->nk_ctx->style.window.border = 0;
-  eng->nk_ctx->style.window.min_row_height_padding = 0;
-  eng->nk_ctx->style.window.padding = nk_vec2(0, 0);
-  eng->nk_ctx->style.window.combo_padding = nk_vec2(0, 0);
   // Init ecs systems
   eng->ecs_ctx = ecs_init();
+  ECS_COMPONENT_DEFINE(eng->ecs_ctx, engine_shutdown_t);
+  ecs_singleton_set(eng->ecs_ctx, engine_shutdown_t, { false });
   ink_pipeline_init(eng);
   plugin_components_init(eng);
   gui_components_init(eng);
@@ -70,6 +70,14 @@ ink_deinit(
   UnloadFont(eng->font);
   free(eng);
   return 0;
+}
+
+/* ink_shutdown */
+void
+ink_shutdown(
+  engine_t *eng
+) {
+  ecs_singleton_set(eng->ecs_ctx, engine_shutdown_t, { true });
 }
 
 /*
@@ -168,6 +176,11 @@ ink_run(
   engine_t *eng
 ) {
   while (!WindowShouldClose()) {
-    ecs_progress(eng->ecs_ctx, 0);
+    const engine_shutdown_t *eng_shutdown = ecs_singleton_get(eng->ecs_ctx, engine_shutdown_t);
+    if (!eng_shutdown || *eng_shutdown) {
+      return;
+    } else {
+      ecs_progress(eng->ecs_ctx, 0);
+    }
   }
 }

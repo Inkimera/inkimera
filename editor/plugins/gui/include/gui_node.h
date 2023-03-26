@@ -1,7 +1,20 @@
 #ifndef GUI_NODE_H
 #define GUI_NODE_H
 
+#include "project.h"
+
 #include "inkimera.h"
+
+#define MAX_PATH 1024
+
+extern const struct nk_color INK_BLACK;
+extern const struct nk_color INK_BLACK_INK;
+extern const struct nk_color INK_WHITE;
+extern const struct nk_color INK_GREY;
+extern const struct nk_color INK_DARK_GREY;
+//extern const struct nk_color INK_LIGHT_BONE;
+//extern const struct nk_color INK_BONE;
+extern const struct nk_color INK_TRANSPARENT;
 
 /* gui_node_type_t */
 typedef enum {
@@ -94,6 +107,7 @@ extern ECS_COMPONENT_DECLARE(gui_layout_t);
 typedef struct {
   int mode;
   bool active;
+  unsigned long target;
 } gui_state_t;
 extern ECS_COMPONENT_DECLARE(gui_state_t);
 
@@ -108,6 +122,18 @@ typedef struct {
   gui_handle_t handle;
 } gui_event_handle_t;
 extern ECS_COMPONENT_DECLARE(gui_event_handle_t);
+
+/* gui_hash */
+unsigned long
+gui_hash(
+  const char *str
+);
+
+/* gui_get_homedir */
+int
+gui_get_homedir(
+  char *homedir
+);
 
 /* gui_new_window */
 node_id_t
@@ -174,5 +200,13 @@ gui_new_widget(
   ecs_world_t *ecs_ctx,
   node_id_t parent,
   gui_widget_type_t widget_type
+);
+
+/* gui_project */
+void
+gui_project(
+  ecs_world_t *ecs_ctx,
+  node_id_t window,
+  project_t project
 );
 #endif
